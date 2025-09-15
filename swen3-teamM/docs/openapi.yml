@@ -1,0 +1,70 @@
+openapi: 3.0.3
+info:
+  title: Paperless REST API (Upload Only)
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /documents:
+    post:
+      summary: Upload a document
+      description: Nimmt eine Datei und optionale Metadaten entgegen. Persistiert Metadaten; spätere Verarbeitung (OCR/Indexing) folgt in späteren Sprints.
+      operationId: uploadDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, title]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF/PNG/JPG; max. 25 MB
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                  maxLength: 2000
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    maxLength: 40
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location:
+              description: URL des neu erstellten Dokuments
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentCreated"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  schemas:
+    DocumentCreated:
+      type: object
+      required: [id, title]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        status:
+          type: string
+          enum: [UPLOADED, PROCESSING, PROCESSED, FAILED]
+        createdAt: { type: string, format: date-time }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: VALIDATION_ERROR }
+        message: { type: string, example: title must not be blank }
