@@ -15,6 +15,8 @@ public class Document {
     private Instant createdAt;
     private Instant updatedAt;
 
+    //ToDo Wenn Lombok, dann @Data und @Builder @AllArgsContructor @NoArgsConstructor...
+
     //getter und setter:
     public UUID getId() {
         return id;
