@@ -13,3 +13,6 @@ spring:
       max-request-size: 50MB
 server:
   port: 8080
+
+#ToDo Paths einfügen
+#Beim Curl ist es mir aber ein Rätsel
