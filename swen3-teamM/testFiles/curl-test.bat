@@ -1,17 +1,43 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
-REM === Pfade/URL hier anpassen ===
 set URL=http://localhost:8080/api/documents
-set FILE=C:\Users\marce\Documents\Semester5\SWEN_LocalRep\swen3-teamM\testFiles\semester-project.pdf
+set FILE=C:\Users\miria\IdeaProjects\pdfFileManager\swen3-teamM\testFiles\semester-project.pdf
 
-echo Posting to %URL%
-curl.exe -i --fail-with-body --verbose ^
-  -X POST "%URL%" ^
-  -F "file=@%FILE%;type=application/pdf" ^
-  -F "title=Test Document" ^
-  -F "description=Just a demo"
+REM === POST ===
+for /f "tokens=*" %%i in ('curl.exe -s -X POST "%URL%" -F "file=@%FILE%;type=application/pdf" -F "title=Test Document" -F "description=Just a demo"') do (
+    set RESPONSE=%%i
+)
 
+echo Response: !RESPONSE!
+
+REM === ID aus JSON extrahieren robust ===
+for /f "tokens=2 delims=:" %%a in ('echo !RESPONSE! ^| findstr /i ""id""') do (
+    set DOC_ID=%%a
+)
+
+REM Nur die UUID behalten, Anführungszeichen entfernen und evtl. Komma
+set DOC_ID=!DOC_ID:"=!
+for /f "tokens=1 delims=," %%b in ("!DOC_ID!") do set DOC_ID=%%b
+
+echo Extracted DOC_ID: !DOC_ID!
+
+REM === GET all documents ===
 echo.
-echo Exit code: %ERRORLEVEL%
+echo Getting all documents
+curl.exe -i -X GET "%URL%"
+echo.
+
+REM === GET document by ID ===
+echo.
+echo Getting document by ID
+curl.exe -i -X GET "%URL%/!DOC_ID!"
+echo.
+
+REM === DELETE document by ID ===
+echo.
+echo Deleting document by ID
+curl.exe -i -X DELETE "%URL%/!DOC_ID!"
+echo.
+
 pause
