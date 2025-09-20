@@ -12,9 +12,9 @@ public class Swen3TeamMApplication {
 
 }
 
-//ToDo Service (und andere) DEMOCODE
+//ToDo Service (und andere) DEMOCODE done
 //ToDo Pfade anschauen (File für Pfade)
 //ToDo Readme.md anpassen
 //ToDo Unit Tests
 //ToDo Class 3 Exercise
-//ToDo Struktur
+//ToDo Struktur done

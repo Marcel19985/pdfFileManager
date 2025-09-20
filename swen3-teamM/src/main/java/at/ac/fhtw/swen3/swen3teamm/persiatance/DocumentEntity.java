@@ -1,4 +1,4 @@
-package at.ac.fhtw.swen3.swen3teamm.entity;
+package at.ac.fhtw.swen3.swen3teamm.persiatance;
 
 import jakarta.persistence.*;
 import lombok.Getter;

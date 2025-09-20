@@ -1,8 +1,7 @@
-package at.ac.fhtw.swen3.swen3teamm.web;
+package at.ac.fhtw.swen3.swen3teamm.presentation;
 
 import at.ac.fhtw.swen3.swen3teamm.service.DocumentService;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
-import at.ac.fhtw.swen3.swen3teamm.entity.DocumentEntity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
