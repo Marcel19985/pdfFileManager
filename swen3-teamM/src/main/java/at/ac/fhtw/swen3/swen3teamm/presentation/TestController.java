@@ -1,4 +1,4 @@
-package at.ac.fhtw.swen3.swen3teamm.web;
+package at.ac.fhtw.swen3.swen3teamm.presentation;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

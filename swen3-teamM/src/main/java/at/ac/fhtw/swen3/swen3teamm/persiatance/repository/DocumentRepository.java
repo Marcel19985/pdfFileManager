@@ -1,11 +1,11 @@
-package at.ac.fhtw.swen3.swen3teamm.repository;
+package at.ac.fhtw.swen3.swen3teamm.persiatance.repository;
 
-import at.ac.fhtw.swen3.swen3teamm.entity.Document;
+import at.ac.fhtw.swen3.swen3teamm.persiatance.DocumentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface DocumentRepository extends JpaRepository<Document, UUID> {
+public interface DocumentRepository extends JpaRepository<DocumentEntity, UUID> {
     //JpaRepository stellt CRUD-Methoden zur Verfügung (save, findById, findAll, deleteById, ...)
     /* so wird es verwendet:
     documentRepository.save(doc);               // Speichert ein Document
