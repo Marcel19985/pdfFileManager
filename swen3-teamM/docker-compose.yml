@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   postgres:
     image: postgres:16
@@ -15,6 +16,21 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paperless-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paperless
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: paper
+    depends_on:
+      - postgres
+    # Kein volumes-Mount, damit das kopierte JAR nicht überschrieben wird
 
 volumes:
   pgdata:

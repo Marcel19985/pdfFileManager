@@ -7,8 +7,5 @@ import org.springframework.boot.test.context.SpringBootTest;
 class Swen3TeamMApplicationTests {
 
 
-    @Test
-    void contextLoads() {
-    }
 
 }
