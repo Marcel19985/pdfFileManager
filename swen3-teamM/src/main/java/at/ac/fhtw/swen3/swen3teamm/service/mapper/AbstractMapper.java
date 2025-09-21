@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class AbstractMapper<S, T> {
+public abstract class AbstractMapper<S, T> { //generische Klasse mit source und target
 
-    public abstract T toDto(S source);
+    public abstract T toDto(S source); //einzelnes Objekt S nach T mappen
 
     public final List<T> toDto(Collection<S> sources) {
         List<T> dtos = new ArrayList<>();
