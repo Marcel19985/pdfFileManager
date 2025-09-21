@@ -1,6 +1,6 @@
-package at.ac.fhtw.swen3.swen3teamm.persiatance.repository;
+package at.ac.fhtw.swen3.swen3teamm.persistance.repository;
 
-import at.ac.fhtw.swen3.swen3teamm.persiatance.DocumentEntity;
+import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

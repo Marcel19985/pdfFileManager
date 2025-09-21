@@ -1,7 +1,7 @@
 package at.ac.fhtw.swen3.swen3teamm.service;
 
-import at.ac.fhtw.swen3.swen3teamm.persiatance.DocumentEntity;
-import at.ac.fhtw.swen3.swen3teamm.persiatance.repository.DocumentRepository;
+import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
+import at.ac.fhtw.swen3.swen3teamm.persistance.repository.DocumentRepository;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
 import at.ac.fhtw.swen3.swen3teamm.service.mapper.DocumentMapper;
 import jakarta.transaction.Transactional;

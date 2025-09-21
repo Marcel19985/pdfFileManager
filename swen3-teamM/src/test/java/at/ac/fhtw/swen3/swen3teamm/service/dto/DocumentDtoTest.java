@@ -1,0 +1,27 @@
+package at.ac.fhtw.swen3.swen3teamm.service.dto;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class DocumentDtoTest {
+
+    @Test
+    void equalsAndHashCode_shouldWorkForSameValues() {
+        UUID id = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        //zwei Dokumente mit exakt den gleichen Werten
+        DocumentDto dto1 = new DocumentDto(id, "Doc", "UPLOADED", now);
+        DocumentDto dto2 = new DocumentDto(id, "Doc", "UPLOADED", now);
+
+        assertThat(dto1).isEqualTo(dto2);
+        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+    }
+
+
+}

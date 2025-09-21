@@ -1,4 +1,4 @@
-package at.ac.fhtw.swen3.swen3teamm.persiatance;
+package at.ac.fhtw.swen3.swen3teamm.persistance;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -29,14 +29,14 @@ public class DocumentEntity {
     private Instant updatedAt;
 
     @PrePersist
-    void onCreate() {
+    public void onCreate() {
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
     }
 
     @PreUpdate
-    void onUpdate() {
+    public void onUpdate() {
         updatedAt = Instant.now();
     }
 }

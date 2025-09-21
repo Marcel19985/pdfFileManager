@@ -1,7 +1,7 @@
 package at.ac.fhtw.swen3.swen3teamm.service.mapper;
 
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
-import at.ac.fhtw.swen3.swen3teamm.persiatance.DocumentEntity;
+import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;

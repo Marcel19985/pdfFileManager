@@ -5,8 +5,10 @@ Frontend and Backend for PDF file manager with full text search for scans
 Docker Desktop starten
 in Terminal zu .../infra navigieren und Befehl eingeben: docker compose up -d
 Applikation in IntelliJ starten (Swen3TeamMApplication)
-Curl Script ausführen (doppelklicken)
 
+
+Curl Script ausführen (doppelklicken) (davor aber PFAD anpassen (kommt später noch in eine .properties))
+oder test unter maven
 
 # DB-Shell öffnen
 in Terminal eingeben: docker exec -it paperless-postgres psql -U test -d paperless
