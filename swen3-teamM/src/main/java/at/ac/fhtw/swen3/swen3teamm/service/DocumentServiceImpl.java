@@ -21,7 +21,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentDto upload(MultipartFile file, String title, String description) {
-        // TODO: Datei speichern (Filesystem/Blob/S3) – vorerst nur Metadaten
+        // TODO: Datei (Multipart file) speichern – vorerst nur Metadaten
         DocumentEntity document = new DocumentEntity();
         document.setTitle(title);
         document.setDescription(description);
@@ -29,7 +29,6 @@ public class DocumentServiceImpl implements DocumentService {
         document = repo.save(document);
         return mapper.toDto(document);
     }
-
 
     @Override
     public List<DocumentDto> getAll() {

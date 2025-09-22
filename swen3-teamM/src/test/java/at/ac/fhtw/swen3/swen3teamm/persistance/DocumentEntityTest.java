@@ -18,7 +18,7 @@ class DocumentEntityTest {
         //Prüfen ob gesetzt ist
         assertThat(entity.getCreatedAt()).isNotNull();
         assertThat(entity.getUpdatedAt()).isNotNull();
-        assertThat(entity.getCreatedAt()).isEqualTo(entity.getUpdatedAt());
+        assertThat(entity.getCreatedAt()).isEqualTo(entity.getUpdatedAt()); //Zeitpunkte müssen gleich sein
     }
 
     @Test
@@ -32,6 +32,6 @@ class DocumentEntityTest {
         entity.onUpdate();
 
         assertThat(entity.getCreatedAt()).isEqualTo(createdAtBefore); //Unverändert bleibt
-        assertThat(entity.getUpdatedAt()).isAfter(updatedAtBefore); //nach dem anderem Wert
+        assertThat(entity.getUpdatedAt()).isAfter(updatedAtBefore); //nach dem Update ist späterer Zeitpunkt
     }
 }

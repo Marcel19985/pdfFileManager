@@ -18,11 +18,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DocumentController {
 
-    private final DocumentService service;
+    private final DocumentService service; //per dependency injection übergeben
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<DocumentDto> upload(
-            @RequestPart("file") MultipartFile file,
+            @RequestPart("file") MultipartFile file, //Multipart File ist der Standard für Datei-Uploads über HTML
             @RequestPart("title") @NotBlank @Size(max = 200) String title,
             @RequestPart(name = "description", required = false) @Size(max = 2000) String description
     ) {
@@ -35,7 +35,7 @@ public class DocumentController {
         return service.getAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") //id wird als Pfadvariable an Methode übergeben
     public ResponseEntity<DocumentDto> getById(@PathVariable UUID id) {
         DocumentDto dto = service.getById(id);
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();

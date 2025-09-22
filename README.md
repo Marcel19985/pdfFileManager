@@ -16,6 +16,8 @@ taskkill /ID **** /F
 
 # DB-Shell öffnen
 in Terminal eingeben: docker exec -it paperless-postgres psql -U test -d paperless
-Dokument upload checken: SELECT * FROM document;
+Dokument upload checken: SELECT * FROM documents;
 Beenden: \q
 
+# Maven neu builden (vor allem nach Änderungen an der pom.xml oder in docker-compose.yml)
+Maven -> swen3-teamM -> Lifecycle -> clean + package
