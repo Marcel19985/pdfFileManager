@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/documents") //http://localhost:8080/api/documents in browser
+@RequestMapping("/api/documents") //http://localhost:8081/api/documents in browser
 @RequiredArgsConstructor
 public class DocumentController {
 

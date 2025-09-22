@@ -3,7 +3,7 @@ Frontend and Backend for PDF file manager with full text search for scans
 
 # Programm starten
 Docker Desktop starten
-im Ordner swen3-teamM und Befehl eingeben: docker compose up --build
+im Ordner swen3-teamM Befehl eingeben: docker compose up --build
 
 Curl Script ausführen (doppelklicken) (davor aber PFAD anpassen (kommt später noch in eine .properties))
 oder test unter maven
