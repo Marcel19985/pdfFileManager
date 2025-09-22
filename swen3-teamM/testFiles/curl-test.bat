@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set URL=http://localhost:8080/api/documents
+set URL=http://localhost:8081/api/documents
 set FILE=C:\Users\marce\Documents\Semester5\SWEN_LocalRep\swen3-teamM\testFiles\semester-project.pdf
 
 REM === POST ===
