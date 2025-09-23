@@ -20,7 +20,8 @@ class DocumentDtoTest {
         DocumentDto dto2 = new DocumentDto(id, "Doc", "UPLOADED", now);
 
         assertThat(dto1).isEqualTo(dto2);
-        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+        assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode()); //sind die gleichen Objekte wenn sie gleichen HashCode haben
+        //wenn man beide in ein HashSet gibt, ist nur eines drinnen
     }
 
 

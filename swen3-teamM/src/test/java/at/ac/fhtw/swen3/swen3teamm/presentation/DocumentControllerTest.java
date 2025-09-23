@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DocumentControllerTest {
 
     @Autowired
-    private MockMvc mockMvc; //simuliert Webserver
+    private MockMvc mockMvc; //simuliert Webserver: Model View Controller
 
     @MockitoBean
     private DocumentService documentService; //Service wird gemobbt

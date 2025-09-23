@@ -17,7 +17,7 @@ class DocumentMapperTest {
 
     @Test
     void toDto_shouldReturnNullForNullEntity() {
-        assertThat(mapper.toDto((DocumentEntity) null)).isNull();
+        assertThat(mapper.toDto((DocumentEntity) null)).isNull(); //null mit cast auf DocumentEntity
     } //Testet ob Null zurück gibt haha
 
     @Test
