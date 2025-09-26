@@ -1,8 +1,7 @@
-version: "3.9"
+
 services:
   postgres:
     image: postgres:16
-    container_name: paperless-postgres
     environment:
       POSTGRES_DB: paperless
       POSTGRES_USER: test
@@ -19,9 +18,8 @@ services:
 
   app:
     build:
-      context: swen3-teamM
-      dockerfile: swen3-teamM/Dockerfile
-    container_name: paperless-app
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     environment:
