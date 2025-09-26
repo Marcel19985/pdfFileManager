@@ -19,8 +19,8 @@ services:
 
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: swen3-teamM
+      dockerfile: swen3-teamM/Dockerfile
     container_name: paperless-app
     ports:
       - "8081:8081"
