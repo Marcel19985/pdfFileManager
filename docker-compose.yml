@@ -1,4 +1,3 @@
-
 services:
   postgres:
     image: postgres:16
@@ -15,20 +14,37 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
-  app:
+  backend:
     build:
-      context: .
+      context: ./swen3-teamM
       dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paperless
       SPRING_DATASOURCE_USERNAME: test
       SPRING_DATASOURCE_PASSWORD: paper
+      # optional sinnvoll:
+      # SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # SERVER_PORT: 8081
     depends_on:
-      - postgres
-    # Kein volumes-Mount, damit das kopierte JAR nicht überschrieben wird
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8081"           # intern für die UI/NGINX
+    ports:
+      - "8081:8081"      # optional: nur für direkten Zugriff/Debug
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"        # Browser: http://localhost:8080
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   pgdata:
