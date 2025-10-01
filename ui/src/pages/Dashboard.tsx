@@ -80,17 +80,22 @@ export default function Dashboard() {
                         <form onSubmit={handleUpload}>
                             <input
                                 type="file"
+                                required={true}
                                 onChange={e => setFile(e.target.files?.[0] ?? null)}
                             />
                             <input
                                 type="text"
                                 placeholder="Title"
                                 value={title}
+                                maxLength={50}
+                                required={true}
+                                pattern="[A-Za-z0-9 ]{1,200}"
                                 onChange={e => setTitle(e.target.value)}
                             />
                             <textarea
                                 placeholder="Description"
                                 value={description}
+                                maxLength={200}
                                 onChange={e => setDescription(e.target.value)}
                             />
 
