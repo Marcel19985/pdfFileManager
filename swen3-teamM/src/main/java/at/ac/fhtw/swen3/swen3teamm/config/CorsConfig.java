@@ -13,9 +13,14 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:8080", "http://localhost:5181") //
+                        .allowedOrigins("http://localhost:8080", "http://localhost:5173") //für vite
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             }
         };
     }
 }
+
+// Unnötig weil:
+// Weil Nginx UI und API unter derselben Domain/Port ausliefert und der Browser dadurch keinen
+// Cross-Origin-Check mehr macht, ist eine separate CORS-Konfiguration überflüssig.
+// Weil es von der selben Origin kommt.

@@ -14,6 +14,5 @@ public class Swen3TeamMApplication {
 
 //ToDo Service (und andere) DEMOCODE done
 //ToDo Pfade anschauen (File für Pfade)
-//ToDo cors
 //ToDo Postman (Marcel)
 
