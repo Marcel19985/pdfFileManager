@@ -39,7 +39,7 @@ class DocumentServiceImplTest {
         entity.setDescription("Desc");
         entity.setCreatedAt(Instant.now());
 
-        DocumentDto dto = new DocumentDto(entity.getId(), "Test Title", "UPLOADED", entity.getCreatedAt());
+        DocumentDto dto = new DocumentDto(entity.getId(), "Test Title", null, "UPLOADED", entity.getCreatedAt());
 
         when(repo.save(any(DocumentEntity.class))).thenReturn(entity);
         when(mapper.toDto(entity)).thenReturn(dto);
@@ -60,7 +60,7 @@ class DocumentServiceImplTest {
         entity.setTitle("Doc1");
         entity.setCreatedAt(Instant.now());
 
-        DocumentDto dto = new DocumentDto(entity.getId(), "Doc1", "UPLOADED", entity.getCreatedAt());
+        DocumentDto dto = new DocumentDto(entity.getId(), "Doc1", "null", "UPLOADED", entity.getCreatedAt());
 
         when(repo.findAll()).thenReturn(List.of(entity));
         when(mapper.toDto(List.of(entity))).thenReturn(List.of(dto));
@@ -79,7 +79,7 @@ class DocumentServiceImplTest {
         entity.setTitle("DocX");
         entity.setCreatedAt(Instant.now());
 
-        DocumentDto dto = new DocumentDto(id, "DocX", "UPLOADED", entity.getCreatedAt());
+        DocumentDto dto = new DocumentDto(id, "DocX", "null", "UPLOADED", entity.getCreatedAt());
 
         when(repo.findById(id)).thenReturn(Optional.of(entity));
         when(mapper.toDto(entity)).thenReturn(dto);

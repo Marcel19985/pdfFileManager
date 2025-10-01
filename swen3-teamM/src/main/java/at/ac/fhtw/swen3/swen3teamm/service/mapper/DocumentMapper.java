@@ -14,7 +14,7 @@ public class DocumentMapper extends AbstractMapper<DocumentEntity, DocumentDto> 
         if (document == null) {
             return null;
         }
-        return new DocumentDto(document.getId(), document.getTitle(), "UPLOADED", document.getCreatedAt());
+        return new DocumentDto(document.getId(), document.getTitle(), document.getDescription(), "UPLOADED", document.getCreatedAt());
     }
 
     @Override

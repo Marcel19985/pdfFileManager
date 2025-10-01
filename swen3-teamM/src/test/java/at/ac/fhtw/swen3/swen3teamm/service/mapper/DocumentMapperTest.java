@@ -40,8 +40,8 @@ class DocumentMapperTest {
     void ordering_shouldSortByCreatedAtDescAndTitle() {
         Instant now = Instant.now();
 
-        DocumentDto older = new DocumentDto(UUID.randomUUID(), "B", "UPLOADED", now.minusSeconds(60));
-        DocumentDto newer = new DocumentDto(UUID.randomUUID(), "A", "UPLOADED", now);
+        DocumentDto older = new DocumentDto(UUID.randomUUID(), "B", null, "UPLOADED", now.minusSeconds(60));
+        DocumentDto newer = new DocumentDto(UUID.randomUUID(), "A", null, "UPLOADED", now);
 
         List<DocumentDto> sorted = mapper.ordering(List.of(older, newer));
 

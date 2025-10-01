@@ -35,7 +35,7 @@ class DocumentControllerTest {
     void upload_shouldReturnCreatedDocument() throws Exception {
         //Daten vorbereiten
         UUID id = UUID.randomUUID();
-        DocumentDto dto = new DocumentDto(id, "My Title", "UPLOADED", Instant.now());
+        DocumentDto dto = new DocumentDto(id, "My Title", null, "UPLOADED", Instant.now());
         MockMultipartFile file = new MockMultipartFile("file", "test.pdf",
                 "application/pdf", "dummy content".getBytes());
         MockMultipartFile titlePart = new MockMultipartFile("title", "", "text/plain", "My Title".getBytes());
@@ -62,7 +62,7 @@ class DocumentControllerTest {
     void getAll_shouldReturnListOfDocuments() throws Exception {
         UUID id = UUID.randomUUID();
         when(documentService.getAll()).thenReturn(List.of(
-                new DocumentDto(id, "Doc1", "NEW", Instant.now())
+                new DocumentDto(id, "Doc1", "desc", "NEW" ,Instant.now())
         ));
 
         mockMvc.perform(get("/api/documents"))
@@ -74,7 +74,7 @@ class DocumentControllerTest {
     @Test
     void getById_shouldReturnDocumentIfFound() throws Exception {
         UUID id = UUID.randomUUID();
-        when(documentService.getById(id)).thenReturn(new DocumentDto(id, "DocX", "NEW", Instant.now()));
+        when(documentService.getById(id)).thenReturn(new DocumentDto(id, "DocX", null, "NEW", Instant.now()));
 
         mockMvc.perform(get("/api/documents/{id}", id))
                 .andExpect(status().isOk())

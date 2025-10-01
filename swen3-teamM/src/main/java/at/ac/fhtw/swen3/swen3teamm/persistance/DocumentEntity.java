@@ -3,6 +3,7 @@ package at.ac.fhtw.swen3.swen3teamm.persistance;
 import jakarta.persistence.*; //für annotations
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant; //Zeitpunkt auf Nanosekunden genau
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Table(name = "documents")
 public class DocumentEntity {
     @Id
+    @UuidGenerator
     @GeneratedValue //Hibernate generiert automatisch eine UUID
     private UUID id;
 

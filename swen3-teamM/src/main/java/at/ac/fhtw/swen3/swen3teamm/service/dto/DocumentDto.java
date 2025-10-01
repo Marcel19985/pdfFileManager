@@ -8,6 +8,7 @@ import java.util.UUID;
 public record DocumentDto(
         UUID id,
         String title,
+        String description,
         String status,
         Instant createdAt
 ) {}
