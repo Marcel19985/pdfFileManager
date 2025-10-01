@@ -32,8 +32,8 @@ services:
         condition: service_healthy
     expose:
       - "8081"           # intern für die UI/NGINX
-    ports:
-      - "8081:8081"      # optional: nur für direkten Zugriff/Debug
+    #ports:
+      #- "8081:8081"      # optional: nur für direkten Zugriff/Debug
     restart: unless-stopped
 
   ui:
@@ -41,7 +41,7 @@ services:
       context: ./ui
       dockerfile: Dockerfile
     ports:
-      - "8080:80"        # Browser: http://localhost:8080
+      - "80:80"        # Browser: http://localhost:80 oder garnichts
     depends_on:
       - backend
     restart: unless-stopped
