@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getDocument, type DocumentDto } from "../api";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getDocument, deleteDocument, type DocumentDto } from "../api";
 
 export default function DocumentDetail() {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [doc, setDoc] = useState<DocumentDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -15,6 +16,17 @@ export default function DocumentDetail() {
             .catch(e => setError(e?.message ?? "Failed to load"))
             .finally(() => setLoading(false));
     }, [id]);
+
+    async function handleDelete() {
+        if (!id) return;
+        if (!window.confirm("Delete this document?")) return;
+        try {
+            await deleteDocument(id);
+            navigate("/");
+        } catch (e: any) {
+            alert("Delete failed: " + e?.message);
+        }
+    }
 
     if (loading) return <p>Loading…</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -28,6 +40,10 @@ export default function DocumentDetail() {
             {doc.createdAt && (
                 <p><small>Created: {new Date(doc.createdAt).toLocaleString()}</small></p>
             )}
+
+            <button onClick={handleDelete} style={{ marginTop: "1rem", color: "red" }}>
+                Delete
+            </button>
         </main>
     );
 }
