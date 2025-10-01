@@ -5,6 +5,8 @@ Frontend and Backend for PDF file manager with full text search for scans
 Docker Desktop starten
 im Terminal des obersten Verzeichnisses eingeben: docker compose up --build
 
+Projekt sieht man unter http://localhost/ oder http://localhost:80 (ist nämlich das Selbe)
+
 Curl Script ausführen (doppelklicken) (davor aber PFAD anpassen (kommt später noch in eine .properties))
 oder test unter maven
 
