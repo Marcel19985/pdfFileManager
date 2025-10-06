@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>at.ac.fhtw.swen3</groupId>
-    <artifactId>swen3-teamM</artifactId>
+    <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>swen3-teamM</name>
     <description>swen3-teamM</description>

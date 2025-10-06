@@ -18,7 +18,7 @@ services:
 
   backend:
     build:
-      context: ./swen3-teamM
+      context: ./backend
       dockerfile: Dockerfile
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paperless
