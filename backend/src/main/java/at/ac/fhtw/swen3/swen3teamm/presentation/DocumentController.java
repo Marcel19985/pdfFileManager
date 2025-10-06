@@ -41,7 +41,7 @@ public class DocumentController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<DocumentDto> updateDocument(
             @PathVariable UUID id,
             @RequestPart("title") @NotBlank @Size(max = 200) String title,

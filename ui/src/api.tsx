@@ -38,3 +38,14 @@ export async function uploadDocument(file: File, title: string, description?: st
 export async function deleteDocument(id: string) {
     await api.delete(`/documents/${id}`);
 }
+
+export async function updateDocument(id: string, title: string, description?: string) {
+    const form = new FormData();
+    form.append("title", title);
+    if (description) form.append("description", description);
+
+    const { data } = await api.put(`/documents/${id}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data as DocumentDto;
+}

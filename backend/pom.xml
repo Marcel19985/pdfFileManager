@@ -11,8 +11,8 @@
     <groupId>at.ac.fhtw.swen3</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>swen3-teamM</name>
-    <description>swen3-teamM</description>
+    <name>backend</name>
+    <description>backend</description>
     <url/>
     <licenses>
         <license/>

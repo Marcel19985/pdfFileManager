@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listDocuments, uploadDocument, type DocumentDto } from "../api";
+import { listDocuments, uploadDocument, updateDocument, type DocumentDto } from "../api";
 import "../Dashboard.css";
 
 export default function Dashboard() {
-    // --- States ---
     const [docs, setDocs] = useState<DocumentDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Formular-States
     const [file, setFile] = useState<File | null>(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
-    // --- Dokumente laden ---
+    // Edit-Modus: null = Create, sonst Dokument bearbeiten
+    const [editing, setEditing] = useState<DocumentDto | null>(null);
+
     async function loadDocs() {
         setLoading(true);
         try {
@@ -30,22 +32,50 @@ export default function Dashboard() {
         loadDocs();
     }, []);
 
-    // --- Upload ---
-    async function handleUpload(e: React.FormEvent) {
+    // Submit entscheidet je nach Modus
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!file || !title) {
-            alert("Datei und Titel sind erforderlich");
-            return;
-        }
+
         try {
-            await uploadDocument(file, title, description);
-            setFile(null);
+            if (editing) {
+                // EDIT: nur Titel/Beschreibung, KEIN File (laut Backend)
+                if (!title.trim()) {
+                    alert("Titel ist erforderlich");
+                    return;
+                }
+                await updateDocument(editing.id, title, description);
+            } else {
+                // CREATE
+                if (!file || !title.trim()) {
+                    alert("Datei und Titel sind erforderlich");
+                    return;
+                }
+                await uploadDocument(file, title, description);
+                setFile(null);
+            }
+
+            // Reset + Refresh
             setTitle("");
             setDescription("");
+            setEditing(null);
             await loadDocs();
         } catch (e: any) {
-            alert("Upload fehlgeschlagen: " + e?.message);
+            alert((editing ? "Update" : "Upload") + " fehlgeschlagen: " + (e?.message ?? ""));
         }
+    }
+
+    function startEdit(d: DocumentDto) {
+        setEditing(d);
+        setTitle(d.title ?? "");
+        setDescription(d.description ?? "");
+        setFile(null); // beim Edit nicht benötigt
+    }
+
+    function cancelEdit() {
+        setEditing(null);
+        setTitle("");
+        setDescription("");
+        setFile(null);
     }
 
     if (loading) return <p className="loading">Lädt...</p>;
@@ -53,12 +83,10 @@ export default function Dashboard() {
 
     return (
         <div className="dashboard-page">
-            {/* Header */}
             <header className="dashboard-header">
                 <h1>PDF MANAGER</h1>
             </header>
 
-            {/* Zwei Spalten */}
             <main className="dashboard-content">
                 {/* Linke Spalte: Dokumente */}
                 <div className="dashboard-column dashboard-left">
@@ -73,51 +101,75 @@ export default function Dashboard() {
                                         {d.title}
                                     </Link>
                                     {d.description && <p className="document-desc">{d.description}</p>}
+
+                                    <div className="document-actions">
+                                        <button type="button" onClick={() => startEdit(d)}>
+                                            ✏️ Bearbeiten
+                                        </button>
+                                        {/* Optional: Delete-Button, falls du willst */}
+                                    </div>
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
 
-                {/* Rechte Spalte: Upload */}
+                {/* Rechte Spalte: Create/Edit */}
                 <div className="dashboard-column dashboard-right">
-                    <h2>Upload</h2>
-                    <form className="upload-form" onSubmit={handleUpload}>
-                        <p>Bitte wählen Sie ein Dokument (derzeit PDF) aus, welches Sie hochladen möchten: ------------------------------- </p>
+                    <h2>{editing ? "Dokument bearbeiten" : "Upload"}</h2>
 
-                            <label className="upload-label">
-                                Datei auswählen:
-                                <input
-                                    type="file"
-                                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                                    required
-                                />
-                            </label>
+                    <form className="upload-form" onSubmit={handleSubmit}>
+                        {!editing && (
+                            <>
+                                <p>Bitte wählen Sie ein Dokument (derzeit PDF) aus, welches Sie hochladen möchten:</p>
+                                <label className="upload-label">
+                                    Datei auswählen:
+                                    <input
+                                        type="file"
+                                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                                        required={!editing} // im Create erforderlich
+                                    />
+                                </label>
+                            </>
+                        )}
 
-                            <label className="upload-label">
-                                Titel:
-                                <input
-                                    type="text"
-                                    placeholder="Titel des Dokuments"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    required
-                                />
-                            </label>
+                        <label className="upload-label">
+                            Titel:
+                            <input
+                                type="text"
+                                placeholder="Titel des Dokuments"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                            />
+                        </label>
 
-                            <label className="upload-label">
-                                Beschreibung (optional):
-                                <textarea
-                                    placeholder="Kurze Beschreibung"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                />
-                            </label>
+                        <label className="upload-label">
+                            Beschreibung (optional):
+                            <textarea
+                                placeholder="Kurze Beschreibung"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </label>
 
+                        <div className="form-actions">
                             <button type="submit" className="upload-button">
-                                📤 Hochladen
+                                {editing ? "💾 Speichern" : "📤 Hochladen"}
                             </button>
+                            {editing && (
+                                <button type="button" className="secondary-button" onClick={cancelEdit}>
+                                    ❌ Abbrechen
+                                </button>
+                            )}
+                        </div>
                     </form>
+
+                    {editing && (
+                        <p className="muted">
+                            Bearbeite: <code>{editing.title}</code> (ID: {editing.id})
+                        </p>
+                    )}
                 </div>
             </main>
         </div>
