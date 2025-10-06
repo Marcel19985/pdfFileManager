@@ -41,6 +41,20 @@ public class DocumentController {
         return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<DocumentDto> updateDocument(
+            @PathVariable UUID id,
+            @RequestPart("title") @NotBlank @Size(max = 200) String title,
+            @RequestPart(name = "description", required = false) @Size(max = 2000) String description
+    ) {
+        try {
+            DocumentDto updatedDto = service.updateDocument(id, title, description);
+            return ResponseEntity.ok(updatedDto);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         try {

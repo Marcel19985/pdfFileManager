@@ -11,4 +11,5 @@ public interface DocumentService {
     List<DocumentDto> getAll();
     DocumentDto getById(UUID id);
     void deleteById(UUID id);
+    DocumentDto updateDocument(UUID id, String title, String description);
 }

@@ -49,4 +49,15 @@ public class DocumentServiceImpl implements DocumentService {
         }
         repo.deleteById(id);
     }
+
+    @Override
+    public DocumentDto updateDocument(UUID id, String title, String description) {
+        DocumentEntity document = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+        document.setTitle(title);
+        document.setDescription(description);
+        // updatedAt wird automatisch durch @PreUpdate gesetzt
+        document = repo.save(document);
+        return mapper.toDto(document);
+    }
 }
