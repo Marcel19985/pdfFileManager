@@ -1,114 +1,187 @@
-/* Vollbild Layout */
-html, body {
-    height: 100%;
+/* Reset */
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-.dashboard-container {
-    min-height: 100vh;
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden; /* verhindert horizontalen Scroll */
+    font-family: sans-serif;
+}
+
+/* Container */
+.dashboard-page {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2rem 1rem;
-    text-align: center;
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f0f0f0;
 }
 
-/* Überschrift */
-.dashboard-container h1 {
-    margin-bottom: 2rem;
+/* Header */
+.dashboard-header {
+    text-align: center;
+    padding: 2rem 0;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
     color: #111555;
-    text-align: center;
 }
 
-/* Flexbox für die zwei Spalten */
-.dashboard-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    position: relative;
-    width: 100vw;
-    max-width: 1200px;
-    flex: 1;
+/* Zwei Spalten mit Grid */
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* exakt 50/50 */
+    width: 100%;
+    gap: 1rem;
+    padding: 1rem;
 }
 
-/* Dokumentenliste links */
-.dashboard-docs {
-    width: calc(50vw - 1px - 2rem);
-    text-align: left;
+/* Spalten */
+.dashboard-column {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.dashboard-docs ul {
+/* Spalten-Titel */
+.dashboard-column h2 {
+    margin-bottom: 1rem;
+    color: #111555;
+}
+
+/* --- Linke Spalte: Dokumentliste --- */
+.dashboard-left {
+    overflow-y: auto; /* Scrollbar, falls viele Dokumente */
+    padding-right: 0.5rem; /* Abstand zur rechten Spalte */
+}
+
+/* Liste */
+.document-list {
     list-style: none;
     padding: 0;
+    margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.8rem; /* Abstand zwischen Listenelementen */
 }
 
-.dashboard-docs li:hover {
-    box-shadow: 0 0 10px rgba(54, 63, 227, 0.33);
-    padding: 0.2rem 0.4rem;
-    border-radius: 6px;
+/* Jedes Listenelement */
+.document-item {
+    background-color: #f7f8fc;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.dashboard-docs a {
+/* Hover-Effekt */
+.document-item:hover {
+    background-color: #eceefb;
+    box-shadow: 0 2px 6px rgba(17, 21, 85, 0.2);
+}
+
+/* Titel der PDF */
+.document-title {
     font-weight: 600;
-    color: #111555;;
+    color: #111555;
+    text-decoration: none;
 }
 
-.dashboard-docs .desc {
-    margin: 0.2rem 0 0 0;
+.document-title:hover {
+    text-decoration: underline;
+}
+
+/* Beschreibung */
+.document-desc {
+    margin-top: 0.3rem;
+    color: #666;
     font-size: 0.9rem;
-    color: #ccc;
 }
 
-.dashboard-divider {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50vw;
-    width: 1px;
-    background-color: #ccc;
-    transform: translateX(-50%);
+/* Muted Text (keine Dokumente) */
+.muted {
+    color: #999;
+    font-style: italic;
 }
 
-/* Upload-Bereich rechts */
-.dashboard-upload {
-    width: calc(50vw - 0);
-    text-align: left;
+/* Rechte Spalte flexen */
+.dashboard-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;           /* Abstand zwischen Überschrift, Formular, Button */
+    height: 100%;        /* volle Höhe der Spalte */
 }
 
-.dashboard-upload form {
+/* Formular schön als Kasten */
+.upload-form {
+    background-color: #f7f8fc;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem;
-    background-color: #1f1f1f;
-    border-radius: 12px;
+    flex-grow: 1;         /* Formular nimmt die Höhe ein, damit Button unten bleibt */
 }
 
-.dashboard-upload input,
-.dashboard-upload textarea {
-    padding: 0.5rem;
+/* Labels & Inputs */
+.upload-label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    color: #333;
+}
+
+.upload-label input,
+.upload-label textarea {
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    border: 1px solid #ccc;
     border-radius: 6px;
-    border: 1px solid rgba(138, 138, 138, 0.27);
-    background-color: #222121;
-    color: #fff;
-    resize: vertical;
+    font-size: 1rem;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.dashboard-upload input:focus,
-.dashboard-upload textarea:focus {
+.upload-label input:focus,
+.upload-label textarea:focus {
     border-color: #111555;
+    box-shadow: 0 0 0 2px rgba(17,21,85,0.1);
     outline: none;
 }
 
-.dashboard-upload button {
-    align-self: flex-end;
+/* Button unten */
+.upload-button {
+    align-self: stretch;   /* Button über die volle Spaltenbreite */
+    background-color: #111555;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.4rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: auto;      /* schiebt den Button an den unteren Rand */
+    transition: all 0.2s ease;
 }
 
-.error {
-    color: red;
+.upload-button:hover {
+    background-color: #3333aa;
+    transform: scale(1.02);
+}
+
+.dashboard-right .upload-form p {
+    background-color: #f0f2f7;  /* leichter Hintergrund für Textblock */
+    padding: 0.5rem 1rem 0.5rem 0; /* oben, rechts, unten, links -> links = 0 */
+    margin: 0.5rem 0 1rem 0;       /* Abstand oben und unten */
+    border-radius: 6px;            /* leichte Abrundung */
+    font-size: 0.95rem;
+    line-height: 1.4;
 }

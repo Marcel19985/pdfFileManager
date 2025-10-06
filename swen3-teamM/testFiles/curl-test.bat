@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set URL=http://localhost:8081/api/documents
-set FILE=C:\FH Technikum\Semester 4\Software Emgineering 2\pdfFileManager\swen3-teamM\testFiles\semester-project.pdf
+set FILE=C:\Users\miria\IdeaProjects\pdfFileManager\swen3-teamM\testFiles\semester-project.pdf
 
 REM === POST ===
 for /f "tokens=*" %%i in ('curl.exe -s -X POST "%URL%" -F "file=@%FILE%;type=application/pdf" -F "title=Test Document" -F "description=Just a demo"') do (

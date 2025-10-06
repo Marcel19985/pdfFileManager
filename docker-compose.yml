@@ -32,8 +32,8 @@ services:
         condition: service_healthy
     expose:
       - "8081"           # intern für die UI/NGINX
-    #ports:
-      #- "8081:8081"      # optional: nur für direkten Zugriff/Debug
+    ports:
+      - "8081:8081"      # optional: nur für direkten Zugriff/Debug buw für npm run dev (beim Frontend)
     restart: unless-stopped
 
   ui:
