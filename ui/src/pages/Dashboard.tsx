@@ -119,9 +119,11 @@ export default function Dashboard() {
                     <h2>{editing ? "Dokument bearbeiten" : "Upload"}</h2>
 
                     <form className="upload-form" onSubmit={handleSubmit}>
-                        {!editing && (
+                        {editing ? (
+                            <p>Sie bearbeiten derzeit ein bestehendes Dokument. Die Datei selbst kann nicht geändert werden, nur Titel und Beschreibung.</p>
+                        ) : (
                             <>
-                                <p>Bitte wählen Sie ein Dokument (derzeit PDF) aus, welches Sie hochladen möchten:</p>
+                                <p>Bitte wählen Sie ein Dokument (derzeit PDF) aus, welches Sie hochladen möchten, geben sie hierfür auch Titel und Beschreibung ein.</p>
                                 <label className="upload-label">
                                     Datei auswählen:
                                     <input

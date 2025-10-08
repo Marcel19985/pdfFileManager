@@ -185,3 +185,28 @@ html, body {
     font-size: 0.95rem;
     line-height: 1.4;
 }
+
+
+.upload-form input,
+.upload-form textarea {
+    color: #666; /* oder z. B. #111 für dunkles Grau */
+    background-color: white; /* falls nötig */
+}
+
+/* --- Bearbeiten-Buttons (gleicher Stil wie Upload) --- */
+.document-actions button {
+    background-color: #2b6833;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.document-actions button:hover {
+    background-color: #4fac56;
+    transform: scale(1.02);
+}
+
