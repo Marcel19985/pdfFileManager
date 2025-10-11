@@ -23,3 +23,14 @@ Beenden: \q
 
 # Maven neu builden (vor allem nach Änderungen an der pom.xml oder in docker-compose.yml)
 Maven -> swen3-teamM -> Lifecycle -> clean + package
+
+#Exception Handling 
+400 – ValidationException
+404 – DocumentNotFound
+413 – UploadTooLarge
+503 – MessagingException
+500 – InternalServerError
+
+layer-spezifische Exceptions (Validation/Messaging/NotFound)
+RabbitTemplate mit JSON + Returns/Confirms
+Logging an persist/publish/error
