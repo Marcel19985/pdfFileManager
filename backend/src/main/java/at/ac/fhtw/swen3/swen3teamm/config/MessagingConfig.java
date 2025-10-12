@@ -8,21 +8,21 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration //wird beim Starten der Spring Boot App automatisch geladen
 public class MessagingConfig {
     public static final String OCR_QUEUE = "ocr.jobs";
 
     // Durable Queue (persistente Nachrichten)
-    @Bean
+    @Bean //Singleton-Bean im Spring Context: einfach via @Autowired in anderen Klassen verwenden -> es existiert nur eine Instanz in der ganzen Appliaktion
     Queue ocrQueue() {
         return QueueBuilder.durable(OCR_QUEUE).build();
-    }
+    } //durable: true -> Nachrichten bleiben auch bei Broker-Neustart erhalten
 
     // RabbitTemplate mit JSON-Konverter + Confirms/Returns für robustes Fehlerhandling
     @Bean
     RabbitTemplate rabbitTemplate(ConnectionFactory cf, Jackson2JsonMessageConverter converter) {
         RabbitTemplate tpl = new RabbitTemplate(cf);
-        tpl.setMessageConverter(converter);
+        tpl.setMessageConverter(converter); //alles was mit convertAndSend() gesendet wird, wird via Jackson zu JSON serialisiert
 
         // Returns aktivieren (unroutable messages)
         tpl.setMandatory(true);

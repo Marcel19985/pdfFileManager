@@ -9,7 +9,8 @@ COPY src ./src
 
 # Wichtig: Tests NICHT kompilieren UND nicht ausführen weil gehen grad nicht wegen Kampf gegen rabbitMQ
 # wenn tests wieder laufen, nächste Zeile wieder auf "RUN mvn -q -DskipTests package" ändern
-RUN mvn -q -Dmaven.test.skip=true package
+# RUN mvn -q -Dmaven.test.skip=true package
+RUN mvn -q -DskipTests package
 #            ^^^^^^^^^^^^^^^^^^^
 
 # ===== Run stage =====

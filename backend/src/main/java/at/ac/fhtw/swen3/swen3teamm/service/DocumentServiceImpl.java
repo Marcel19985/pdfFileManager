@@ -13,7 +13,7 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE;
+import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE; //in MessagingConfig definiert
 
 
 import java.time.Instant;
@@ -51,11 +51,11 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Document persisted id={}", document.getId());
 
         // Saubere, typisierte Payload (wird via Jackson2JsonMessageConverter zu JSON)
-        OcrJobDto job = new OcrJobDto(document.getId(), title, Instant.now());
+        OcrJobDto job = new OcrJobDto(document.getId(), title, Instant.now()); //Message hat anderen createdAT timestamp -> DB und Queue loosely coupled
 
         // Publish mit Fehler-Mapping (HTTP 503 über GlobalExceptionHandler)
         try {
-            rabbit.convertAndSend("", OCR_QUEUE, job); // Default-Exchange, routingKey = Queue
+            rabbit.convertAndSend("", OCR_QUEUE, job); //"" = Default-Exchange, routingKey = Queue
             log.info("Published OCR job docId={} queue={}", document.getId(), OCR_QUEUE);
         } catch (AmqpException ex) {
             log.error("Failed to publish OCR job docId={} queue={}", document.getId(), OCR_QUEUE, ex);

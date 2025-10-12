@@ -5,6 +5,7 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+//diese Klasse wurde aus dem sample code übernommen: rabbitmqechoservice von Moodle SWEN 3 Kurs
 @Configuration
 public class JacksonConfig {
     @Bean ObjectMapper objectMapper() {
