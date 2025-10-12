@@ -16,6 +16,24 @@ services:
       retries: 10
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbit
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: pass
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -24,6 +42,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paperless
       SPRING_DATASOURCE_USERNAME: test
       SPRING_DATASOURCE_PASSWORD: paper
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: pass
       # optional sinnvoll:
       # SPRING_JPA_HIBERNATE_DDL_AUTO: update
       # SERVER_PORT: 8081
@@ -34,6 +56,23 @@ services:
       - "8081"           # intern für die UI/NGINX
     ports:
       - "8081:8081"      # optional: nur für direkten Zugriff/Debug buw für npm run dev (beim Frontend)
+    restart: unless-stopped
+
+  ocr-worker:
+    build:
+      context: ./ocr-worker
+      dockerfile: Dockerfile
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: pass
+      QUEUE_NAME: ocr.jobs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8082:8082"   # falls du eine einfache Health/Info-HTTP-Route im Worker willst (optional)
     restart: unless-stopped
 
   ui:
@@ -48,3 +87,4 @@ services:
 
 volumes:
   pgdata:
+  rabbitmq_data:

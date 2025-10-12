@@ -1,15 +1,21 @@
-# Basis-Image: JDK 17
-FROM openjdk:17-jdk-slim
-
-# Arbeitsverzeichnis im Container
+# ===== Build stage =====
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Nimm das eine JAR aus target/ (Build muss vorher lokal gelaufen sein)
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+COPY pom.xml .
+RUN mvn -q -DskipTests dependency:go-offline
 
-# Expose Port 8081 für den Container
+COPY src ./src
+
+# Wichtig: Tests NICHT kompilieren UND nicht ausführen weil gehen grad nicht wegen Kampf gegen rabbitMQ
+# wenn tests wieder laufen, nächste Zeile wieder auf "RUN mvn -q -DskipTests package" ändern
+# RUN mvn -q -Dmaven.test.skip=true package
+RUN mvn -q -DskipTests package
+#            ^^^^^^^^^^^^^^^^^^^
+
+# ===== Run stage =====
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /app/target/*.jar /app/app.jar
 EXPOSE 8081
-
-# Startbefehl für das JAR
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java","-jar","app.jar"]

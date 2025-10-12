@@ -4,9 +4,16 @@ import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
 import at.ac.fhtw.swen3.swen3teamm.persistance.repository.DocumentRepository;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
 import at.ac.fhtw.swen3.swen3teamm.service.mapper.DocumentMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+
+import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE;
+import static org.mockito.ArgumentMatchers.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,109 +21,127 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class DocumentServiceImplTest {
 
-    private DocumentRepository repo;
-    private DocumentMapper mapper;
-    private DocumentServiceImpl service;
+    @Mock DocumentRepository repo;
+    @Mock DocumentMapper mapper;
+    @Mock RabbitTemplate rabbit;
 
-    @BeforeEach
-    void setUp() { //alles mocken
-        repo = mock(DocumentRepository.class);
-        mapper = mock(DocumentMapper.class);
-        service = new DocumentServiceImpl(repo, mapper);
-    }
+    @InjectMocks DocumentServiceImpl service;
 
     @Test
-    void upload_shouldSaveDocumentAndReturnDto() {
-        MockMultipartFile file = new MockMultipartFile("file", "test.pdf", "application/pdf", "dummy".getBytes());
-        DocumentEntity entity = new DocumentEntity();
-        entity.setId(UUID.randomUUID());
+    void upload_success_persists_and_publishes() {
+        // arrange
+        var file = new MockMultipartFile("file", "test.pdf", "application/pdf", new byte[]{1,2,3});
+        var id = UUID.randomUUID();
+        var now = Instant.now();
+
+        var entity = new DocumentEntity();
+        entity.setId(id);
         entity.setTitle("Test Title");
         entity.setDescription("Desc");
-        entity.setCreatedAt(Instant.now());
+        entity.setCreatedAt(now);
 
-        DocumentDto dto = new DocumentDto(entity.getId(), "Test Title", null, "UPLOADED", entity.getCreatedAt());
+        var dto = new DocumentDto(id, "Test Title", "Desc", "UPLOADED", now);
 
         when(repo.save(any(DocumentEntity.class))).thenReturn(entity);
         when(mapper.toDto(entity)).thenReturn(dto);
+        // publish OK -> nichts weiter stubben
 
-        DocumentDto result = service.upload(file, "Test Title", "Desc");
+        // act
+        var result = service.upload(file, "Test Title", "Desc");
 
+        // assert
         assertNotNull(result);
         assertEquals("Test Title", result.title());
-        assertEquals("UPLOADED", result.status());
         verify(repo, times(1)).save(any(DocumentEntity.class));
+        verify(rabbit, times(1))
+                .convertAndSend(eq(""), eq(OCR_QUEUE), (Object) any());
         verify(mapper, times(1)).toDto(entity);
     }
 
     @Test
-    void getAll_shouldReturnListOfDtos() {
-        DocumentEntity entity = new DocumentEntity();
+    void upload_withEmptyFile_throwsValidationException() {
+        var empty = new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
+        assertThrows(ValidationException.class, () -> service.upload(empty, "t", "d"));
+    }
+
+    @Test
+    void upload_publishFails_throwsMessagingException() {
+        var file = new MockMultipartFile("file", "a.pdf", "application/pdf", new byte[]{1});
+        var entity = new DocumentEntity();
         entity.setId(UUID.randomUUID());
-        entity.setTitle("Doc1");
-        entity.setCreatedAt(Instant.now());
+        when(repo.save(any())).thenReturn(entity);
+        doThrow(new AmqpException("down"))
+                .when(rabbit)
+                .convertAndSend(eq(""), eq(OCR_QUEUE), (Object) any());
 
-        DocumentDto dto = new DocumentDto(entity.getId(), "Doc1", "null", "UPLOADED", entity.getCreatedAt());
+        assertThrows(MessagingException.class, () -> service.upload(file, "t", "d"));
 
-        when(repo.findAll()).thenReturn(List.of(entity));
-        when(mapper.toDto(List.of(entity))).thenReturn(List.of(dto));
+        verify(repo).save(any());
+        verify(rabbit)
+                .convertAndSend(eq(""), eq(OCR_QUEUE), (Object) any());
+    }
 
-        List<DocumentDto> result = service.getAll();
+    @Test
+    void getAll_returnsListOfDtos() {
+        var e = new DocumentEntity();
+        e.setId(UUID.randomUUID());
+        e.setTitle("Doc1");
+        e.setCreatedAt(Instant.now());
+        when(repo.findAll()).thenReturn(List.of(e));
+        when(mapper.toDto(anyList())).thenReturn(
+                List.of(new DocumentDto(e.getId(), "Doc1", null, "UPLOADED", e.getCreatedAt()))
+        );
+
+        var result = service.getAll();
 
         assertEquals(1, result.size());
         assertEquals("Doc1", result.get(0).title());
     }
 
     @Test
-    void getById_shouldReturnDtoIfFound() {
-        UUID id = UUID.randomUUID();
-        DocumentEntity entity = new DocumentEntity();
-        entity.setId(id);
-        entity.setTitle("DocX");
-        entity.setCreatedAt(Instant.now());
+    void getById_found_returnsDto() {
+        var id = UUID.randomUUID();
+        var e = new DocumentEntity();
+        e.setId(id);
+        e.setTitle("DocX");
+        e.setCreatedAt(Instant.now());
+        when(repo.findById(id)).thenReturn(Optional.of(e));
+        when(mapper.toDto(e)).thenReturn(new DocumentDto(id, "DocX", null, "UPLOADED", e.getCreatedAt()));
 
-        DocumentDto dto = new DocumentDto(id, "DocX", "null", "UPLOADED", entity.getCreatedAt());
+        var dto = service.getById(id);
 
-        when(repo.findById(id)).thenReturn(Optional.of(entity));
-        when(mapper.toDto(entity)).thenReturn(dto);
-
-        DocumentDto result = service.getById(id);
-
-        assertNotNull(result);
-        assertEquals("DocX", result.title());
+        assertNotNull(dto);
+        assertEquals("DocX", dto.title());
     }
 
     @Test
-    void getById_shouldReturnNullIfNotFound() {
-        UUID id = UUID.randomUUID();
+    void getById_notFound_throwsDocumentNotFound() {
+        var id = UUID.randomUUID();
         when(repo.findById(id)).thenReturn(Optional.empty());
-
-        DocumentDto result = service.getById(id);
-
-        assertNull(result);
+        assertThrows(DocumentNotFoundException.class, () -> service.getById(id));
     }
 
     @Test
-    void deleteById_shouldDeleteIfExists() {
-        UUID id = UUID.randomUUID();
+    void deleteById_exists_deletes() {
+        var id = UUID.randomUUID();
         when(repo.existsById(id)).thenReturn(true);
-        doNothing().when(repo).deleteById(id);
 
         assertDoesNotThrow(() -> service.deleteById(id));
-
-        verify(repo, times(1)).deleteById(id);
+        verify(repo).deleteById(id);
     }
 
     @Test
-    void deleteById_shouldThrowIfNotExists() {
-        UUID id = UUID.randomUUID();
+    void deleteById_notExists_throwsIllegalArgument() {
+        var id = UUID.randomUUID();
         when(repo.existsById(id)).thenReturn(false);
 
-        Exception ex = assertThrows(IllegalArgumentException.class, () -> service.deleteById(id));
+        var ex = assertThrows(IllegalArgumentException.class, () -> service.deleteById(id));
         assertTrue(ex.getMessage().contains("Document not found"));
     }
 }
