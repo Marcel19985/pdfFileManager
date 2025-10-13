@@ -68,6 +68,7 @@ services:
       RABBITMQ_USER: user
       RABBITMQ_PASS: pass
       QUEUE_NAME: ocr.jobs
+      RESULT_QUEUE: ocr.results
     depends_on:
       rabbitmq:
         condition: service_healthy

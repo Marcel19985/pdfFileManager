@@ -2,6 +2,7 @@ package at.ac.fhtw.swen3.swen3teamm.config;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -11,12 +12,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration //wird beim Starten der Spring Boot App automatisch geladen
 public class MessagingConfig {
     public static final String OCR_QUEUE = "ocr.jobs";
+    public static final String OCR_RESULTS_QUEUE = "ocr.results";
 
     // Durable Queue (persistente Nachrichten)
     @Bean //Singleton-Bean im Spring Context: einfach via @Autowired in anderen Klassen verwenden -> es existiert nur eine Instanz in der ganzen Appliaktion
     Queue ocrQueue() {
         return QueueBuilder.durable(OCR_QUEUE).build();
     } //durable: true -> Nachrichten bleiben auch bei Broker-Neustart erhalten
+
+    @Bean
+    Queue ocrResultsQueue() {
+        return QueueBuilder.durable(OCR_RESULTS_QUEUE).build();
+    }
 
     // RabbitTemplate mit JSON-Konverter + Confirms/Returns für robustes Fehlerhandling
     @Bean
@@ -44,5 +51,14 @@ public class MessagingConfig {
         });
 
         return tpl;
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory cf, Jackson2JsonMessageConverter converter) {
+        var f = new org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory();
+        f.setConnectionFactory(cf);
+        f.setMessageConverter(converter);
+        f.setPrefetchCount(1); // analog zum Worker
+        return f;
     }
 }
