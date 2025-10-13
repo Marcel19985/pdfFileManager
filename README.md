@@ -34,3 +34,10 @@ Maven -> swen3-teamM -> Lifecycle -> clean + package
 layer-spezifische Exceptions (Validation/Messaging/NotFound)  
 RabbitTemplate mit JSON + Returns/Confirms  
 Logging an persist/publish/error  
+
+# rabbitMQ
+http://localhost:15672/
+User: user
+Pass: pass
+Terminal für rabbitMQ info: docker compose logs -f ocr-worker
+Terminal für backend info: docker compose logs -f backend
