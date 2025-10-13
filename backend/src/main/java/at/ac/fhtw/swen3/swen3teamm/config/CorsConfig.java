@@ -24,3 +24,5 @@ public class CorsConfig {
 // Weil Nginx UI und API unter derselben Domain/Port ausliefert und der Browser dadurch keinen
 // Cross-Origin-Check mehr macht, ist eine separate CORS-Konfiguration überflüssig.
 // Weil es von der selben Origin kommt.
+
+//--> auch somit Test Fett unnötig
