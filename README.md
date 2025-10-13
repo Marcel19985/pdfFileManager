@@ -39,5 +39,27 @@ Logging an persist/publish/error
 http://localhost:15672/
 User: user
 Pass: pass
+In Navbar unter "Queues and Streams" kann man messages publishen und Get Message(s) klicken um sie zu verarbeiten
+
+erfolgreicher Test in ocr.jobs:
+Properties: content_type = application/json
+Payload:
+{
+"documentId": "b3e9aef1-1d32-44a3-bf8b-14cb8da67653",
+"title": "Test PDF",
+"createdAt": "2025-10-13T18:48:20.666Z"
+}
+
+erfolgreicher Test in ocr.results:
+Properties: content_type = application/json
+Payload:
+{
+"documentId": "123e4567-e89b-12d3-a456-426614174000",
+"status": "DONE",
+"textExcerpt": "dummy text",
+"error": null,
+"processedAt": "2025-10-13T21:25:00Z"
+}
+
 Terminal für rabbitMQ info: docker compose logs -f ocr-worker
 Terminal für backend info: docker compose logs -f backend
