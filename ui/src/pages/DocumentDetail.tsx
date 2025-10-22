@@ -44,6 +44,37 @@ export default function DocumentDetail() {
             <button onClick={handleDelete} style={{ marginTop: "1rem", color: "red" }}>
                 Delete
             </button>
+
+            {doc && (
+                <section style={{ marginTop: "2rem" }}>
+                    <h2>Document Preview</h2>
+                    <iframe
+                        src={`http://localhost:8081/api/documents/${doc.id}/file`}
+                        width="100%"
+                        height="400px"
+                        style={{ border: "1px solid #ccc", borderRadius: "8px" }}
+                        title="Document preview"
+                    ></iframe>
+
+                    <p style={{ marginTop: "1rem" }}>
+                        <a
+                            href={`http://localhost:8081/api/documents/${doc.id}/file`}
+                            download={`${doc.title}.pdf`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Download PDF
+                        </a>
+                    </p>
+                </section>
+            )}
+
+
+
         </main>
+
+
     );
+
 }
+
