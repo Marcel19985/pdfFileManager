@@ -83,19 +83,21 @@ def connect_with_retry(max_attempts=30, base_sleep=1.0):
 
 # Verarbeitung pro Message
 def on_msg(ch, method, props, body):
+    # A) Parsing/Validierung – nie requeue -> verhindern von endless loop durch poison message
     try:
-        data = json.loads(body)
-        if not data.get("documentId"):
+        data = json.loads(body) #body ist byte array -> in string umwandeln
+        if not data.get("documentId"): #keine documentId vorhanden:
             raise ValueError("missing documentId")
-    except JSONDecodeError as e:
+    except JSONDecodeError as e: #ungültiges JSON:
         log.warning("Invalid JSON → drop: %r (%s)", body, e)
         ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
         return
-    except Exception as e:
+    except Exception as e: #sonstige Fehler bei Validierung:
         log.warning("Invalid message → drop: %r (%s)", body, e)
         ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
         return
 
+    # B) Verarbeitung/Publish – echte Fehler dürfen requeue (Retry)
     try:
         log.info("Received job: %s", data)
         document_id = str(data["documentId"])
@@ -119,21 +121,21 @@ def on_msg(ch, method, props, body):
             body=json.dumps(result).encode("utf-8"),
             properties=pika.BasicProperties(content_type="application/json", delivery_mode=2),
         )
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        ch.basic_ack(delivery_tag=method.delivery_tag) #Nachricht als verarbeitet markieren -> wird aus der Queue gelöscht, delivery_tag ist eindeutige ID pro Nachricht
         log.info("Done & published OCR result to %s", RESULT_QUEUE)
 
     except Exception as e:
         log.exception("Processing error → requeue")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True) #Nachricht als nicht verarbeitet markieren -> wird wieder in die Queue gestellt
 
 # Main Entry
 def main():
     conn = connect_with_retry()
     ch = conn.channel()
-    ch.queue_declare(queue=QUEUE_NAME, durable=True)
-    ch.queue_declare(queue=RESULT_QUEUE, durable=True)
-    ch.basic_qos(prefetch_count=1)
-    ch.basic_consume(queue=QUEUE_NAME, on_message_callback=on_msg)
+    ch.queue_declare(queue=QUEUE_NAME, durable=True) #wird geschaut, ob queue schon existiert, wenn nicht wird sie erstellt
+    ch.queue_declare(queue=RESULT_QUEUE, durable=True) #result_queue
+    ch.basic_qos(prefetch_count=1) #nächste Nachricht wird erst zugestellt, wenn die vorherige bestätigt wurde (acknowledged) -> verhindert Überlastung
+    ch.basic_consume(queue=QUEUE_NAME, on_message_callback=on_msg) #worker registriert sich als Konsument der queue -> on_msg wird immer aufgerufen wenn in der Queue eine Message ist
     log.info("Waiting for messages on %s → results to %s", QUEUE_NAME, RESULT_QUEUE)
     ch.start_consuming()
 
