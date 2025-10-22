@@ -32,7 +32,6 @@ public class MinioService {
         }
     }
 
-    // In MinioService
     public void delete(String objectName) {
         try {
             minioClient.removeObject(
@@ -45,7 +44,6 @@ public class MinioService {
             throw new RuntimeException("Error deleting from MinIO", e);
         }
     }
-
 
     public InputStream download(String objectName) {
         try {

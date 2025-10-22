@@ -40,16 +40,16 @@ public class DocumentServiceImpl implements DocumentService {
             throw new ValidationException("File must not be empty");
         }
 
-        // 1️⃣ Neues DocumentEntity anlegen
+        //Neues DocumentEntity anlegen
         DocumentEntity document = new DocumentEntity();
         document.setTitle(title);
         document.setDescription(description);
 
-        // 2️⃣ Erst in DB speichern → ID wird generiert
+        //Erst in DB speichern → ID wird generiert
         document = repo.save(document);
         log.info("Document persisted id={}", document.getId());
 
-        // 3️⃣ Datei in MinIO hochladen
+        //Datei in MinIO hochladen
         try {
             String objectName = document.getId() + ".pdf";
             minioService.upload(objectName, file.getInputStream(), file.getSize());
@@ -59,7 +59,7 @@ public class DocumentServiceImpl implements DocumentService {
             //throw new StorageException("Failed to store file in MinIO", e);
         }
 
-        // 4️⃣ OCR-Job vorbereiten & senden
+        //OCR-Job vorbereiten & senden
         OcrJobDto job = new OcrJobDto(document.getId(), title, Instant.now());
 
         try {
@@ -72,7 +72,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         return mapper.toDto(document);
     }
-
 
     @Override
     public List<DocumentDto> getAll() {

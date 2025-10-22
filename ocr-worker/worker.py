@@ -43,17 +43,17 @@ def perform_ocr(document_id: str) -> str:
     log.info(f"Starting OCR for document {document_id}")
 
     try:
-        # 1️⃣ PDF herunterladen
+        #PDF herunterladen
         response = minio_client.get_object("documents", f"{document_id}.pdf")
         pdf_bytes = response.read()
         response.close()
         response.release_conn()
 
-        # 2️⃣ PDF-Seiten in Bilder umwandeln
+        #PDF-Seiten in Bilder umwandeln
         images = convert_from_bytes(pdf_bytes)
         log.info(f"Converted PDF to {len(images)} image(s)")
 
-        # 3️⃣ OCR ausführen
+        #OCR ausführen
         text = ""
         for i, img in enumerate(images):
             page_text = pytesseract.image_to_string(img)
