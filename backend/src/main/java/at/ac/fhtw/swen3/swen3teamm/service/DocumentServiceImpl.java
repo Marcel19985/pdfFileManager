@@ -14,8 +14,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE; //in MessagingConfig definiert
+import at.ac.fhtw.swen3.swen3teamm.service.MinioService;
 
-
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -31,31 +32,38 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository repo;
     private final DocumentMapper mapper;
     private final RabbitTemplate rabbit;
+    private final MinioService minioService;
 
     @Override
     public DocumentDto upload(MultipartFile file, String title, String description) {
-        // TODO: Datei (Multipart file) speichern – vorerst nur Metadaten
-
-        // Eingangsvalidierung (HTTP 400 über GlobalExceptionHandler)
         if (file == null || file.isEmpty()) {
             throw new ValidationException("File must not be empty");
         }
 
-        //Metadaten persistieren
+        //Neues DocumentEntity anlegen
         DocumentEntity document = new DocumentEntity();
         document.setTitle(title);
         document.setDescription(description);
 
-        // createdAt/updatedAt via @PrePersist
+        //Erst in DB speichern → ID wird generiert
         document = repo.save(document);
         log.info("Document persisted id={}", document.getId());
 
-        // Saubere, typisierte Payload (wird via Jackson2JsonMessageConverter zu JSON)
-        OcrJobDto job = new OcrJobDto(document.getId(), title, Instant.now()); //Message hat anderen createdAT timestamp -> DB und Queue loosely coupled
-
-        // Publish mit Fehler-Mapping (HTTP 503 über GlobalExceptionHandler)
+        //Datei in MinIO hochladen
         try {
-            rabbit.convertAndSend("", OCR_QUEUE, job); //"" = Default-Exchange, routingKey = Queue
+            String objectName = document.getId() + ".pdf";
+            minioService.upload(objectName, file.getInputStream(), file.getSize());
+            log.info("Uploaded file to MinIO: {}", objectName);
+        } catch (Exception e) {
+            log.error("Failed to upload file to MinIO for document {}", document.getId(), e);
+            //throw new StorageException("Failed to store file in MinIO", e);
+        }
+
+        //OCR-Job vorbereiten & senden
+        OcrJobDto job = new OcrJobDto(document.getId(), title, Instant.now());
+
+        try {
+            rabbit.convertAndSend("", OCR_QUEUE, job);
             log.info("Published OCR job docId={} queue={}", document.getId(), OCR_QUEUE);
         } catch (AmqpException ex) {
             log.error("Failed to publish OCR job docId={} queue={}", document.getId(), OCR_QUEUE, ex);
@@ -82,6 +90,15 @@ public class DocumentServiceImpl implements DocumentService {
         if (!repo.existsById(id)) {
             throw new IllegalArgumentException("Document not found: " + id);
         }
+
+        String objectName = id + ".pdf";
+        try {
+            minioService.delete(objectName);
+            log.info("Deleted file from MinIO: {}", objectName);
+        } catch (Exception e) {
+            log.warn("Failed to delete file from MinIO: {}", objectName, e);
+        }
+
         repo.deleteById(id);
         log.info("Document deleted id={}", id);
     }
@@ -97,4 +114,10 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Document updated id={}", id);
         return mapper.toDto(document);
     }
+
+    @Override
+    public InputStream downloadFromMinio(String objectName) {
+        return minioService.download(objectName);
+    }
+
 }

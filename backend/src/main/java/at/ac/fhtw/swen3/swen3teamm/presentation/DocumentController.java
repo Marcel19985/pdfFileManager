@@ -65,4 +65,22 @@ public class DocumentController {
         }
     }
 
+    @GetMapping("/{id}/file")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable UUID id) {
+        var doc = service.getById(id); // wirft Exception, falls nicht vorhanden
+        var objectName = id + ".pdf";
+
+        try (var inputStream = service.downloadFromMinio(objectName)) {
+            byte[] bytes = inputStream.readAllBytes();
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "inline; filename=\"" + doc.title() + ".pdf\"")
+                    .body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+
 }
