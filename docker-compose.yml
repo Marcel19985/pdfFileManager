@@ -105,6 +105,26 @@ services:
       retries: 5
     restart: unless-stopped
 
+  genai-worker:
+    build:
+      context: ./genai-worker
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: pass
+      GENAI_INPUT_QUEUE: ocr.results       # konsumiert die OCR-Ergebnisse
+      BACKEND_BASE_URL: http://backend:8081
+      GENAI_MODEL: ${GENAI_MODEL:-gemini-2.0-flash}
+      # GEMINI_API_KEY kommt aus .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   pgdata:

@@ -35,3 +35,5 @@ ui/node_modules/
 
 # Vite build output
 ui/dist/
+
+.env
