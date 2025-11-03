@@ -82,5 +82,18 @@ public class DocumentController {
         }
     }
 
+    record SummaryUpdateRequest(String summary, String model, Integer tokens) {}
+
+
+    @PatchMapping("/{id}/summary")
+    public ResponseEntity<Void> updateSummary(@PathVariable UUID id, @RequestBody SummaryUpdateRequest req) {
+        try {
+            service.updateSummary(id, req.summary(), req.model(), req.tokens());
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }

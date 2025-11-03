@@ -10,5 +10,6 @@ public record DocumentDto(
         String title,
         String description,
         String status,
-        Instant createdAt
+        Instant createdAt,
+        String summary
 ) {}

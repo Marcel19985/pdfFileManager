@@ -47,7 +47,7 @@ class DocumentServiceImplTest {
         // Mapper gibt DTO zurück
         when(mapper.toDto(any(DocumentEntity.class))).thenAnswer(inv -> {
             DocumentEntity e = inv.getArgument(0);
-            return new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt());
+            return new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null);
         });
 
         ArgumentCaptor<OcrJobDto> jobCaptor = ArgumentCaptor.forClass(OcrJobDto.class);
@@ -94,7 +94,7 @@ class DocumentServiceImplTest {
                 .when(minio).upload(anyString(), any(InputStream.class), anyLong());
 
         when(mapper.toDto(any(DocumentEntity.class))).thenReturn(
-                new DocumentDto(entity.getId(), entity.getTitle(), entity.getDescription(), "UPLOADED", entity.getCreatedAt())
+                new DocumentDto(entity.getId(), entity.getTitle(), entity.getDescription(), "UPLOADED", entity.getCreatedAt(), null)
         );
 
         assertDoesNotThrow(() -> service.upload(file, "t", "d"));
@@ -130,7 +130,7 @@ class DocumentServiceImplTest {
         var e = newEntity("Doc1", null);
         when(repo.findAll()).thenReturn(List.of(e));
         when(mapper.toDto(anyList())).thenReturn(
-                List.of(new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt()))
+                List.of(new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null))
         );
 
         var result = service.getAll();
@@ -146,7 +146,7 @@ class DocumentServiceImplTest {
         var e = newEntity("DocX", null);
         when(repo.findById(e.getId())).thenReturn(Optional.of(e));
         when(mapper.toDto(e)).thenReturn(
-                new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt())
+                new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null)
         );
 
         var dto = service.getById(e.getId());

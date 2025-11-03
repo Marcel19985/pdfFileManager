@@ -30,6 +30,18 @@ public class DocumentEntity {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    // NEU: Summary-Felder
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(length = 64)
+    private String summaryModel;
+
+    private Integer summaryTokens;
+
+    private Instant summaryCreatedAt;
+
+
     @PrePersist //wird aufgerufen bevor die Entität in die DB geschrieben wird
     public void onCreate() {
         Instant now = Instant.now();

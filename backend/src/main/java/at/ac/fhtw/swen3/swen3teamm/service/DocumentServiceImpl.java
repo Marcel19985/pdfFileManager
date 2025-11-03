@@ -116,6 +116,17 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    public void updateSummary(UUID id, String summary, String model, Integer tokens) {
+        var doc = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+        if (summary == null || summary.isBlank()) throw new IllegalArgumentException("summary is required");
+        doc.setSummary(summary);
+        doc.setSummaryModel(model != null ? model : "gemini-2.0-flash");
+        doc.setSummaryTokens(tokens);
+        doc.setSummaryCreatedAt(Instant.now());
+        repo.save(doc);
+    }
+
+    @Override
     public InputStream downloadFromMinio(String objectName) {
         return minioService.download(objectName);
     }

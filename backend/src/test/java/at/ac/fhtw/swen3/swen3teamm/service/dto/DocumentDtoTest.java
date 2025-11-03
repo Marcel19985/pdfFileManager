@@ -16,8 +16,8 @@ class DocumentDtoTest {
         Instant now = Instant.now();
 
         //zwei Dokumente mit exakt den gleichen Werten
-        DocumentDto dto1 = new DocumentDto(id, "Doc", null, "UPLOADED", now);
-        DocumentDto dto2 = new DocumentDto(id, "Doc", null, "UPLOADED", now);
+        DocumentDto dto1 = new DocumentDto(id, "Doc", null, "UPLOADED", now, null);
+        DocumentDto dto2 = new DocumentDto(id, "Doc", null, "UPLOADED", now, null);
 
         assertThat(dto1).isEqualTo(dto2);
         assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode()); //sind die gleichen Objekte wenn sie gleichen HashCode haben

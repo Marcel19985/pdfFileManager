@@ -14,4 +14,5 @@ public interface DocumentService {
     void deleteById(UUID id);
     DocumentDto updateDocument(UUID id, String title, String description);
     InputStream downloadFromMinio(String objectName);
+    void updateSummary(UUID id, String summary, String model, Integer tokens);
 }
