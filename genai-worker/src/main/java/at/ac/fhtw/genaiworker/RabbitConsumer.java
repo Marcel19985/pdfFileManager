@@ -7,12 +7,14 @@ import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 
 public class RabbitConsumer {
     private static final Logger log = LoggerFactory.getLogger(RabbitConsumer.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final String queueName = System.getenv().getOrDefault("GENAI_INPUT_QUEUE", "ocr.results");
+    private final String inputQueue = System.getenv().getOrDefault("GENAI_INPUT_QUEUE", "ocr.results");
+    private final String outputQueue = System.getenv().getOrDefault("GENAI_OUTPUT_QUEUE", "genai.results"); // NEU
     private final String host = System.getenv().getOrDefault("RABBITMQ_HOST", "rabbitmq");
     private final String user = System.getenv().getOrDefault("RABBITMQ_USER", "user");
     private final String pass = System.getenv().getOrDefault("RABBITMQ_PASS", "pass");
@@ -30,33 +32,52 @@ public class RabbitConsumer {
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
 
-                channel.queueDeclare(queueName, true, false, false, null);
-                log.info("Waiting for OCR results on queue: {}", queueName);
+                channel.queueDeclare(inputQueue, true, false, false, null);
+                channel.queueDeclare(outputQueue, true, false, false, null); // NEU
+
+                log.info("Waiting for OCR results on queue: {}", inputQueue);
 
                 DeliverCallback deliver = (tag, delivery) -> {
                     String raw = new String(delivery.getBody(), StandardCharsets.UTF_8);
                     try {
                         ObjectNode msg = (ObjectNode) MAPPER.readTree(raw);
                         String docId = msg.path("documentId").asText(null);
-                        String text = msg.path("textExcerpt").asText(""); // falls du später Volltext lieferst: "text"
-                        if (docId == null) throw new IllegalArgumentException("documentId missing in message");
+                        String text = msg.path("text").asText(msg.path("textExcerpt").asText("")); // fallback
+                        if (docId == null) throw new IllegalArgumentException("documentId missing");
 
                         log.info("OCR result received for {} ({} chars)", docId, text.length());
 
                         String summary = GeminiClient.summarize(text);
-                        int tokensApprox = Math.max(1, summary.length() / 4); // simple approx
+                        int tokensApprox = Math.max(1, summary.length() / 4);
 
-                        RestClient.sendSummaryToBackend(docId, summary, model, tokensApprox);
+                        ObjectNode out = MAPPER.createObjectNode();
+                        out.put("documentId", docId);
+                        out.put("summary", summary);
+                        out.put("model", model);
+                        out.put("tokens", tokensApprox);
+                        out.put("createdAt", Instant.now().toString());
+                        out.putNull("error");
+
+                        channel.basicPublish(
+                                "", // default exchange
+                                outputQueue,
+                                new AMQP.BasicProperties.Builder()
+                                        .contentType("application/json")
+                                        .deliveryMode(2) // persistent
+                                        .build(),
+                                out.toString().getBytes(StandardCharsets.UTF_8)
+                        );
                         channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                        log.info("Published GenAI result to {}", outputQueue);
+
                     } catch (Exception e) {
                         log.error("Error while processing OCR message: {}", e.getMessage(), e);
-                        // requeue once after a short delay; in real life use a DLQ
-                        try { Thread.sleep(Duration.ofSeconds(2)); } catch (InterruptedException ignored) {}
                         channel.basicNack(delivery.getEnvelope().getDeliveryTag(), false, true);
                     }
                 };
 
-                channel.basicConsume(queueName, false, deliver, tag -> {});
+                channel.basicQos(1);
+                channel.basicConsume(inputQueue, false, deliver, tag -> {});
                 Thread.currentThread().join();
             }
         } catch (Exception e) {

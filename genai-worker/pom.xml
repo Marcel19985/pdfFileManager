@@ -11,49 +11,84 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <slf4j.version>2.0.13</slf4j.version>
+        <jackson.version>2.17.2</jackson.version>
+        <shade.plugin.version>3.5.0</shade.plugin.version>
     </properties>
 
+    <!-- BOM erzwingt konsistente SLF4J 2.0.x -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- JSON handling -->
+        <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.17.2</version>
+            <version>${jackson.version}</version>
         </dependency>
 
-        <!-- RabbitMQ client -->
+        <!-- RabbitMQ -->
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
             <version>5.21.0</version>
         </dependency>
 
-        <!-- Logging -->
+        <!-- SLF4J API 2.0.x -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Binding: ENTWEDER slf4j-simple ... -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>2.0.9</version>
+            <!-- Version kommt aus BOM -->
         </dependency>
+
+        <!-- ... ODER Logback (dann slf4j-simple entfernen)
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>1.5.6</version>
+        </dependency>
+        -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Fat-/Uber-JAR mit allen Dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>${shade.plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals><goal>shade</goal></goals>
                         <configuration>
-                            <!-- wir wollen kein dependency-reduced POM schreiben -->
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!-- Keine Minimierung, damit nichts Wichtiges rausfliegt -->
+                            <minimizeJar>false</minimizeJar>
                             <transformers>
+                                <!-- Main-Class setzen -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>at.ac.fhtw.genaiworker.Main</mainClass>
                                 </transformer>
+                                <!-- WICHTIG: Services zusammenführen (für SLF4J 2 Provider) -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <!-- Lizenz/Notice Konflikte auflösen (optional, aber sauber) -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>

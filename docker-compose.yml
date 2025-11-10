@@ -115,8 +115,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: user
       RABBITMQ_PASS: pass
-      GENAI_INPUT_QUEUE: ocr.results       # konsumiert die OCR-Ergebnisse
-      BACKEND_BASE_URL: http://backend:8081
+      GENAI_INPUT_QUEUE: ocr.results # konsumiert die OCR-Ergebnisse
+      GENAI_OUTPUT_QUEUE: genai.results
       GENAI_MODEL: ${GENAI_MODEL:-gemini-2.0-flash}
       # GEMINI_API_KEY kommt aus .env
     depends_on:

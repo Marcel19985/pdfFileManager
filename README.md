@@ -17,7 +17,7 @@ ganz am ende steht dann eine ID
 taskkill /ID **** /F
 
 # DB-Shell öffnen
-in Terminal eingeben: docker exec -it paperless-postgres psql -U test -d paperless
+in Terminal eingeben: docker exec -it $(docker ps -qf "name=postgres") psql -U test -d paperless
 Dokument upload checken: SELECT * FROM documents;
 Beenden: \q
 
