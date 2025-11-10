@@ -11,14 +11,14 @@ import java.time.Instant;
 
 public class RabbitConsumer {
     private static final Logger log = LoggerFactory.getLogger(RabbitConsumer.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper(); //Konvertierung zwisachen JSON und Objekten
 
-    private final String inputQueue = System.getenv().getOrDefault("GENAI_INPUT_QUEUE", "ocr.results");
-    private final String outputQueue = System.getenv().getOrDefault("GENAI_OUTPUT_QUEUE", "genai.results"); // NEU
+    private final String inputQueue = System.getenv().getOrDefault("GENAI_INPUT_QUEUE", "ocr.results"); //hörst auf diese Queue
+    private final String outputQueue = System.getenv().getOrDefault("GENAI_OUTPUT_QUEUE", "genai.results"); //schickt results (Zusammenfassung also Output von Gemini) in diese Queue
     private final String host = System.getenv().getOrDefault("RABBITMQ_HOST", "rabbitmq");
     private final String user = System.getenv().getOrDefault("RABBITMQ_USER", "user");
     private final String pass = System.getenv().getOrDefault("RABBITMQ_PASS", "pass");
-    private final String model = System.getenv().getOrDefault("GENAI_MODEL", "gemini-2.0-flash");
+    private final String model = System.getenv().getOrDefault("GENAI_MODEL", "gemini-2.0-flash"); //Name des Modells, das an Gemini geschickt wird.
 
     public void start() {
         try {
@@ -33,7 +33,7 @@ public class RabbitConsumer {
                  Channel channel = connection.createChannel()) {
 
                 channel.queueDeclare(inputQueue, true, false, false, null);
-                channel.queueDeclare(outputQueue, true, false, false, null); // NEU
+                channel.queueDeclare(outputQueue, true, false, false, null);
 
                 log.info("Waiting for OCR results on queue: {}", inputQueue);
 

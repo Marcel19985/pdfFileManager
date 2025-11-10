@@ -6,12 +6,6 @@ COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline
 COPY src ./src
 
-# --- Build stage
-RUN mvn -q -DskipTests package \
- && echo "=== JAR CONTENTS (logger probe) ===" \
- && jar tf target/app.jar | grep -Ei 'StaticLoggerBinder|slf4j|logback|simple' || true \
- && echo "=== END PROBE ==="
-
 # Build and rename the runnable jar to a stable name
 RUN mvn -q -DskipTests package \
  && ls -lah target \

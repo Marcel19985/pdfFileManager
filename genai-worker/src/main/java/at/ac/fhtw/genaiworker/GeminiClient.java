@@ -22,16 +22,25 @@ public class GeminiClient {
         if (API_KEY == null || API_KEY.isBlank())
             throw new IllegalStateException("GEMINI_API_KEY not set!");
 
-        String payload = MAPPER.createObjectNode()
-                .putArray("contents")
-                .addObject()
-                .putArray("parts")
-                .addObject()
-                .put("text", "Fasse den folgenden Text kurz und prägnant zusammen:\n\n" + text)
-                .toString();
+        // 1) Eingabetext begrenzen (optional, schützt vor sehr langen OCR-Texten)
+        String clipped = text == null ? "" : text;
+        if (clipped.length() > 20000) clipped = clipped.substring(0, 20000);
 
-        URI uri = URI.create("https://generativelanguage.googleapis.com/v1beta/models/"
-                + MODEL + ":generateContent?key=" + API_KEY);
+        // 2) Payload nach aktuellem v1-Schema
+        ObjectNode root = MAPPER.createObjectNode();
+        var contents = root.putArray("contents");
+        var content0 = contents.addObject();
+        content0.put("role", "user");
+        var parts = content0.putArray("parts");
+        parts.addObject().put("text", "Fasse den folgenden Text kurz und prägnant zusammen:\n\n" + clipped);
+
+        String payload = MAPPER.writeValueAsString(root);
+
+        // 3) v1-Endpoint verwenden
+        URI uri = URI.create(
+                "https://generativelanguage.googleapis.com/v1/models/"
+                        + MODEL + ":generateContent?key=" + API_KEY
+        );
 
         HttpRequest req = HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofSeconds(60))
@@ -46,9 +55,8 @@ public class GeminiClient {
             if (res.statusCode() == 200) {
                 return extractText(res.body());
             }
-            // retry on 429 with backoff
             if (res.statusCode() == 429 && attempts < 4) {
-                long backoff = (long) Math.pow(2, attempts) * 500L; // 1s, 2s, 4s
+                long backoff = (long) Math.pow(2, attempts) * 500L;
                 log.warn("Gemini 429, retrying in {} ms (attempt {}/{})", backoff, attempts, 3);
                 Thread.sleep(backoff);
                 continue;
