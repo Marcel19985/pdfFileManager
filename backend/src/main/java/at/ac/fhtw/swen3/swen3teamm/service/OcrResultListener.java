@@ -8,7 +8,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-public class OcrResultListener {
+public class OcrResultListener { //war eher zum Testen gedacht, nun hört der RabbitConsumer in genai-worker auf OCR-Ergebnisse
 
     public record OcrResultDto(String documentId, String status, String textExcerpt, String error, Instant processedAt) {}
 

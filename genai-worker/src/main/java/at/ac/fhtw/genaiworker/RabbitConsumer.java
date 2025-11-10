@@ -27,29 +27,33 @@ public class RabbitConsumer {
             factory.setUsername(user);
             factory.setPassword(pass);
             factory.setAutomaticRecoveryEnabled(true);
-            factory.setNetworkRecoveryInterval(2000);
+            factory.setNetworkRecoveryInterval(2000); // 2 Sekunden
 
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
 
+                //Queues deklarieren:
                 channel.queueDeclare(inputQueue, true, false, false, null);
                 channel.queueDeclare(outputQueue, true, false, false, null);
 
                 log.info("Waiting for OCR results on queue: {}", inputQueue);
 
-                DeliverCallback deliver = (tag, delivery) -> {
+                DeliverCallback deliver = (tag, delivery) -> { //Funktion wird jedes Mal aufgerufen, wenn eine neue Message in der Queue liegt
                     String raw = new String(delivery.getBody(), StandardCharsets.UTF_8);
                     try {
+                        // JSON parsen
                         ObjectNode msg = (ObjectNode) MAPPER.readTree(raw);
                         String docId = msg.path("documentId").asText(null);
                         String text = msg.path("text").asText(msg.path("textExcerpt").asText("")); // fallback
-                        if (docId == null) throw new IllegalArgumentException("documentId missing");
+                        if (docId == null) throw new IllegalArgumentException("documentId missing"); //documentID vorhanden?
 
                         log.info("OCR result received for {} ({} chars)", docId, text.length());
 
-                        String summary = GeminiClient.summarize(text);
-                        int tokensApprox = Math.max(1, summary.length() / 4);
 
+                        String summary = GeminiClient.summarize(text); //Generiere Zusammenfassung via GeminiClient
+                        int tokensApprox = Math.max(1, summary.length() / 4); //Zählt grob die Token (1 Token ≈ 4 Zeichen)
+
+                        //Ergebnisobjekt bauen als JSON:
                         ObjectNode out = MAPPER.createObjectNode();
                         out.put("documentId", docId);
                         out.put("summary", summary);
@@ -58,6 +62,7 @@ public class RabbitConsumer {
                         out.put("createdAt", Instant.now().toString());
                         out.putNull("error");
 
+                        //Neues JSON in RabbitMQ veröffentlichen ->Sendet die Zusammenfassung als neue Message in die genai.results Queue
                         channel.basicPublish(
                                 "", // default exchange
                                 outputQueue,
@@ -67,7 +72,7 @@ public class RabbitConsumer {
                                         .build(),
                                 out.toString().getBytes(StandardCharsets.UTF_8)
                         );
-                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                        channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false); //Bestätigt, dass die Message erfolgreich verarbeitet wurde
                         log.info("Published GenAI result to {}", outputQueue);
 
                     } catch (Exception e) {
@@ -76,12 +81,12 @@ public class RabbitConsumer {
                     }
                 };
 
-                channel.basicQos(1);
-                channel.basicConsume(inputQueue, false, deliver, tag -> {});
-                Thread.currentThread().join();
+                channel.basicQos(1); //nur eine Nachricht gleichzeitig verarbeiten
+                channel.basicConsume(inputQueue, false, deliver, tag -> {}); //Startet den Listener-Thread
+                Thread.currentThread().join(); //verhindert, dass der Prozess sofort endet
             }
         } catch (Exception e) {
-            log.error("Fatal worker error", e);
+            log.error("Fatal worker error", e); //Falls irgendetwas außerhalb des Channels schiefgeht (z. B. RabbitMQ down)
         }
     }
 }

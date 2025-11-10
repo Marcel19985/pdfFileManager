@@ -30,16 +30,15 @@ public class DocumentEntity {
     @Column(nullable = false)
     private Instant updatedAt;
 
-    // NEU: Summary-Felder
     @Column(columnDefinition = "TEXT")
     private String summary;
 
     @Column(length = 64)
-    private String summaryModel;
+    private String summaryModel; //welches KI-Modell genutzt wurde
 
-    private Integer summaryTokens;
+    private Integer summaryTokens; //Anzahl der Tokens der Zusammenfassung (Quasi Textlänge)
 
-    private Instant summaryCreatedAt;
+    private Instant summaryCreatedAt; //Wann summary erstellt wurde
 
 
     @PrePersist //wird aufgerufen bevor die Entität in die DB geschrieben wird
