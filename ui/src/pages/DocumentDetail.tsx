@@ -89,7 +89,7 @@ export default function DocumentDetail() {
                     <p style={{ color: "#777" }}>
                         {polling
                             ? "Wird verarbeitet… (aktualisiert automatisch)"
-                            : "Noch keine Zusammenfassung verfügbar."}
+                            : "Zusammenfassung derzeit nicht verfügbar."}
                     </p>
                 )}
             </section>

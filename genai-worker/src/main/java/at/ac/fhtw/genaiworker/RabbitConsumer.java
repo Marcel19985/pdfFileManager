@@ -62,7 +62,7 @@ public class RabbitConsumer {
                         out.put("createdAt", Instant.now().toString());
                         out.putNull("error");
 
-                        //Neues JSON in RabbitMQ veröffentlichen ->Sendet die Zusammenfassung als neue Message in die genai.results Queue
+                        //Neues JSON in RabbitMQ veröffentlichen -> Sendet die Zusammenfassung als neue Message in die genai.results Queue
                         channel.basicPublish(
                                 "", // default exchange
                                 outputQueue,

@@ -56,9 +56,9 @@ public class GeminiClient {
             if (res.statusCode() == 200) {
                 return extractText(res.body());
             }
-            // Falls zu viele Anfragen (429), exponentielles Backoff durchführen:
+            // Falls zu viele Anfragen (429), exponentielles Backoff durchführen: je öfter request fehlschlägt, desto länger wird gewartet bis nächstes request
             if (res.statusCode() == 429 && attempts < 4) {
-                long backoff = (long) Math.pow(2, attempts) * 500L;
+                long backoff = (long) Math.pow(2, attempts) * 500L; //attempts wird ^2 gerechnet und mit 500 (Millisekunden) multipliziert
                 log.warn("Gemini 429, retrying in {} ms (attempt {}/{})", backoff, attempts, 3);
                 Thread.sleep(backoff); // kurze Wartezeit vor erneutem Versuch
                 continue;
