@@ -82,39 +82,15 @@ export default function DocumentDetail() {
                 <h2>Zusammenfassung</h2>
 
                 {doc.summary?.trim() ? (
-                    <>
-                        <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
-                            {doc.summary}
-                        </p>
-                        <button
-                            onClick={async () => {
-                                if (!id) return;
-                                const fresh = await getDocument(id);
-                                setDoc(fresh);
-                                if (!fresh.summary?.trim()) setPolling(true);
-                            }}
-                            style={{ marginTop: 8 }}
-                        >
-                            🔄 Aktualisieren
-                        </button>
-                    </>
+                    <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                        {doc.summary}
+                    </p>
                 ) : (
-                    <>
-                        <p style={{ color: "#777" }}>
-                            {polling ? "Wird verarbeitet… (aktualisiert automatisch)" : "Noch keine Zusammenfassung verfügbar."}
-                        </p>
-                        <button
-                            onClick={async () => {
-                                if (!id) return;
-                                const fresh = await getDocument(id);
-                                setDoc(fresh);
-                                if (!fresh.summary?.trim()) setPolling(true);
-                            }}
-                            style={{ marginTop: 8 }}
-                        >
-                            🔄 Aktualisieren
-                        </button>
-                    </>
+                    <p style={{ color: "#777" }}>
+                        {polling
+                            ? "Wird verarbeitet… (aktualisiert automatisch)"
+                            : "Noch keine Zusammenfassung verfügbar."}
+                    </p>
                 )}
             </section>
 
