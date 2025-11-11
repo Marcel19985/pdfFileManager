@@ -4,13 +4,15 @@ export const api = axios.create({
     baseURL: "/api", // dank Vite-Proxy geht das lokal an http://localhost:8080
 });
 
-// Types optional – anpassen an euer DTO
+// Types – anpassen an DTO
 export type DocumentDto = {
     id: string;
     title: string;
     description?: string;
-    status?: string;
     createdAt?: string;
+
+    //optional, vom Backend kommend
+    summary?: string | null;
 };
 
 export async function listDocuments(): Promise<DocumentDto[]> {
@@ -48,4 +50,5 @@ export async function updateDocument(id: string, title: string, description?: st
         headers: { "Content-Type": "multipart/form-data" },
     });
     return data as DocumentDto;
+
 }
