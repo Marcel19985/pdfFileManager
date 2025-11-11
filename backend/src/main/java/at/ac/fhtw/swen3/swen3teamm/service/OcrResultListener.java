@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
-@Service
+/*@Service
 @RequiredArgsConstructor
 public class OcrResultListener { //war eher zum Testen gedacht, nun hört der RabbitConsumer in genai-worker auf OCR-Ergebnisse
 
@@ -20,4 +20,4 @@ public class OcrResultListener { //war eher zum Testen gedacht, nun hört der Ra
         // repo.findById(UUID.fromString(result.documentId()))
         //     .ifPresent(doc -> { doc.setStatus(result.status()); repo.save(doc); });
     }
-}
+}*/
