@@ -34,6 +34,20 @@ services:
       retries: 10
     restart: unless-stopped
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+
   backend:
     build:
       context: ./backend
@@ -128,5 +142,6 @@ services:
 
 volumes:
   pgdata:
+  es_data:
   rabbitmq_data:
   minio_data:
