@@ -12,9 +12,9 @@ public class GeminiClient {
     private static final Logger log = LoggerFactory.getLogger(GeminiClient.class); // Logger für Konsolen- bzw. Container-Logs
     private static final ObjectMapper MAPPER = new ObjectMapper(); // JSON (De-)Serialisierung mit Jackson
 
-    private static final String API_KEY = System.getenv("GEMINI_API_KEY");
+    static String API_KEY = System.getenv("GEMINI_API_KEY");
     private static final String MODEL = System.getenv().getOrDefault("GENAI_MODEL", "gemini-2.0-flash");
-    private static final HttpClient HTTP = HttpClient.newBuilder()
+    static HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20)) //timeout 20 Sekunden
             .build();
 
