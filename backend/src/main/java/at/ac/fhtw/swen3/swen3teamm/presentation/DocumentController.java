@@ -95,5 +95,10 @@ public class DocumentController {
         }
     }
 
+    @GetMapping("/search")
+    public List<DocumentDto> search(@RequestParam String q) {
+        return service.search(q);
+    }
+
 
 }

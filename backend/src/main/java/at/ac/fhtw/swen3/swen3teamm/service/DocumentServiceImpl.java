@@ -15,11 +15,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE; //in MessagingConfig definiert
 import at.ac.fhtw.swen3.swen3teamm.service.MinioService;
+import at.ac.fhtw.swen3.swen3teamm.service.ElasticsearchService;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,6 +36,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentMapper mapper;
     private final RabbitTemplate rabbit;
     private final MinioService minioService;
+    private final ElasticsearchService elasticsearchService;
 
     @Override
     public DocumentDto upload(MultipartFile file, String title, String description) {
@@ -92,11 +96,19 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         String objectName = id + ".pdf";
+
         try {
             minioService.delete(objectName);
             log.info("Deleted file from MinIO: {}", objectName);
         } catch (Exception e) {
             log.warn("Failed to delete file from MinIO: {}", objectName, e);
+        }
+
+        try {
+            elasticsearchService.deleteDocument(id.toString());
+            log.info("Deleted document from Elasticsearch: {}", id);
+        } catch (Exception e) {
+            log.warn("Failed to delete document from Elasticsearch: {}", id, e);
         }
 
         repo.deleteById(id);
@@ -124,6 +136,22 @@ public class DocumentServiceImpl implements DocumentService {
         doc.setSummaryTokens(tokens);
         doc.setSummaryCreatedAt(Instant.now());
         repo.save(doc);
+    }
+
+    @Override
+    public List<DocumentDto> search(String query) {
+        log.info("Search called with query: {}", query);
+        try {
+            List<String> ids = elasticsearchService.searchDocumentsByText(query);
+            log.info("Elasticsearch returned IDs: {}", ids);
+            return ids.stream()
+                    .map(UUID::fromString)
+                    .map(this::getById) // holt Metadaten aus DB
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            log.error("Elasticsearch search failed", e);
+            return List.of();
+        }
     }
 
     @Override

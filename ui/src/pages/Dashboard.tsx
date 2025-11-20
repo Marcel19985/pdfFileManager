@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listDocuments, uploadDocument, updateDocument, type DocumentDto } from "../api";
+import {
+    listDocuments,
+    uploadDocument,
+    updateDocument,
+    searchDocuments,
+    type DocumentDto,
+} from "../api";
 import "../Dashboard.css";
 
 export default function Dashboard() {
@@ -8,12 +14,16 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Suche
+    const [search, setSearch] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
+
     // Formular-States
     const [file, setFile] = useState<File | null>(null);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
-    // Edit-Modus: null = Create, sonst Dokument bearbeiten
+    // Edit-Modus
     const [editing, setEditing] = useState<DocumentDto | null>(null);
 
     async function loadDocs() {
@@ -32,20 +42,38 @@ export default function Dashboard() {
         loadDocs();
     }, []);
 
-    // Submit entscheidet je nach Modus
+    async function performSearch() {
+        if (!search.trim()) return;
+        setLoading(true);
+        setIsSearching(true);
+
+        try {
+            const results = await searchDocuments(search);
+            setDocs(results);
+        } catch (e) {
+            alert("Suche fehlgeschlagen");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function cancelSearch() {
+        setSearch("");
+        setIsSearching(false);
+        loadDocs();
+    }
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
         try {
             if (editing) {
-                // EDIT: nur Titel/Beschreibung, KEIN File (laut Backend)
                 if (!title.trim()) {
                     alert("Titel ist erforderlich");
                     return;
                 }
                 await updateDocument(editing.id, title, description);
             } else {
-                // CREATE
                 if (!file || !title.trim()) {
                     alert("Datei und Titel sind erforderlich");
                     return;
@@ -54,7 +82,6 @@ export default function Dashboard() {
                 setFile(null);
             }
 
-            // Reset + Refresh
             setTitle("");
             setDescription("");
             setEditing(null);
@@ -68,7 +95,7 @@ export default function Dashboard() {
         setEditing(d);
         setTitle(d.title ?? "");
         setDescription(d.description ?? "");
-        setFile(null); // beim Edit nicht benötigt
+        setFile(null);
     }
 
     function cancelEdit() {
@@ -88,9 +115,35 @@ export default function Dashboard() {
             </header>
 
             <main className="dashboard-content">
-                {/* Linke Spalte: Dokumente */}
+
+                {/* Linke Spalte */}
                 <div className="dashboard-column dashboard-left">
                     <h2>Dokumente</h2>
+
+                    {/* 🔍 Suchfeld */}
+                    <div className="search-container">
+                        <input
+                            className="search-input"
+                            type="text"
+                            placeholder="🔍 Suche in Dokumenten..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+
+                        {/* Suchbutton */}
+                        <button className="search-button" onClick={performSearch}>
+                            🔍
+                        </button>
+
+                        {/* Cancel Button */}
+                        {isSearching && (
+                            <button className="cancel-button" onClick={cancelSearch}>
+                                ❌
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Dokumentliste */}
                     {docs.length === 0 ? (
                         <p className="muted">Keine Dokumente vorhanden.</p>
                     ) : (
@@ -100,13 +153,14 @@ export default function Dashboard() {
                                     <Link to={`/documents/${d.id}`} className="document-title">
                                         {d.title}
                                     </Link>
-                                    {d.description && <p className="document-desc">{d.description}</p>}
+                                    {d.description && (
+                                        <p className="document-desc">{d.description}</p>
+                                    )}
 
                                     <div className="document-actions">
                                         <button type="button" onClick={() => startEdit(d)}>
                                             ✏️ Bearbeiten
                                         </button>
-                                        {/* Optional: Delete-Button, falls du willst */}
                                     </div>
                                 </li>
                             ))}
@@ -114,22 +168,22 @@ export default function Dashboard() {
                     )}
                 </div>
 
-                {/* Rechte Spalte: Create/Edit */}
+                {/* Rechte Spalte */}
                 <div className="dashboard-column dashboard-right">
                     <h2>{editing ? "Dokument bearbeiten" : "Upload"}</h2>
 
                     <form className="upload-form" onSubmit={handleSubmit}>
                         {editing ? (
-                            <p>Sie bearbeiten derzeit ein bestehendes Dokument. Die Datei selbst kann nicht geändert werden, nur Titel und Beschreibung.</p>
+                            <p>Sie bearbeiten derzeit ein bestehendes Dokument.</p>
                         ) : (
                             <>
-                                <p>Bitte wählen Sie ein Dokument (derzeit PDF) aus, welches Sie hochladen möchten, geben sie hierfür auch Titel und Beschreibung ein.</p>
+                                <p>Bitte wählen Sie ein Dokument aus.</p>
                                 <label className="upload-label">
                                     Datei auswählen:
                                     <input
                                         type="file"
                                         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                                        required={!editing} // im Create erforderlich
+                                        required={!editing}
                                     />
                                 </label>
                             </>
@@ -139,7 +193,6 @@ export default function Dashboard() {
                             Titel:
                             <input
                                 type="text"
-                                placeholder="Titel des Dokuments"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
@@ -147,9 +200,8 @@ export default function Dashboard() {
                         </label>
 
                         <label className="upload-label">
-                            Beschreibung (optional):
+                            Beschreibung:
                             <textarea
-                                placeholder="Kurze Beschreibung"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                             />
@@ -159,19 +211,18 @@ export default function Dashboard() {
                             <button type="submit" className="upload-button">
                                 {editing ? "💾 Speichern" : "📤 Hochladen"}
                             </button>
+
                             {editing && (
-                                <button type="button" className="secondary-button" onClick={cancelEdit}>
+                                <button
+                                    type="button"
+                                    className="secondary-button"
+                                    onClick={cancelEdit}
+                                >
                                     ❌ Abbrechen
                                 </button>
                             )}
                         </div>
                     </form>
-
-                    {editing && (
-                        <p className="muted">
-                            Bearbeite: <code>{editing.title}</code> (ID: {editing.id})
-                        </p>
-                    )}
                 </div>
             </main>
         </div>
