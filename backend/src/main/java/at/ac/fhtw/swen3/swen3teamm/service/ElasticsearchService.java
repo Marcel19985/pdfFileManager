@@ -41,3 +41,5 @@ public class ElasticsearchService {
         }
     }
 }
+
+//todo: logs hinzufügen

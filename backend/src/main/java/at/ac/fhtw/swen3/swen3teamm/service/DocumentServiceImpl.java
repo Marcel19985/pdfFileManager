@@ -5,6 +5,7 @@ import at.ac.fhtw.swen3.swen3teamm.persistance.repository.DocumentRepository;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.OcrJobDto;
 import at.ac.fhtw.swen3.swen3teamm.service.mapper.DocumentMapper;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -146,10 +147,11 @@ public class DocumentServiceImpl implements DocumentService {
             log.info("Elasticsearch returned IDs: {}", ids);
             return ids.stream()
                     .map(UUID::fromString)
-                    .map(this::getById) // holt Metadaten aus DB
+                    .map(this::getById)
                     .collect(Collectors.toList());
-        } catch (IOException e) {
+        } catch (IOException | ElasticsearchException e) {
             log.error("Elasticsearch search failed", e);
+            // Lieber "leer" zurückgeben statt 500 → UI bleibt happy
             return List.of();
         }
     }
