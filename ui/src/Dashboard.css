@@ -245,3 +245,15 @@ html, body {
 .search-button:hover {
     background-color: #2e3068;
 }
+
+.document-item {
+    position: relative; /* notwendig für Icon-Position */
+}
+
+.document-category-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    cursor: default;
+}

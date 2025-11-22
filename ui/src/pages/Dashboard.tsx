@@ -9,6 +9,23 @@ import {
 } from "../api";
 import "../Dashboard.css";
 
+// Kategorie Icons definieren
+function getCategoryIcon(name?: string) {
+    if (!name) return "🏷️"; // Standard-Icon, falls keine Kategorie
+    switch(name.toLowerCase()) {
+        case "geschichte": return "📜";
+        case "rechnung": return "🧾";
+        case "brief": return "✉️";
+        case "schule": return "📚";
+        case "wissenschaft": return "🔬";
+        case "vertrag": return "📄";
+        case "medizin": return "💉";
+        case "technik": return "⚙️";
+        case "sonstiges": return "📦";
+        default: return "🏷️";
+    }
+}
+
 export default function Dashboard() {
     const [docs, setDocs] = useState<DocumentDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -41,6 +58,17 @@ export default function Dashboard() {
     useEffect(() => {
         loadDocs();
     }, []);
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            if (docs.some(d => !d.categoryName)) {
+                const updated = await listDocuments();
+                setDocs(updated);
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [docs]);
 
     async function performSearch() {
         if (!search.trim()) return;
@@ -120,7 +148,6 @@ export default function Dashboard() {
                 <div className="dashboard-column dashboard-left">
                     <h2>Dokumente</h2>
 
-                    {/* 🔍 Suchfeld */}
                     <div className="search-container">
                         <input
                             className="search-input"
@@ -129,27 +156,30 @@ export default function Dashboard() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-
-                        {/* Suchbutton */}
-                        <button className="search-button" onClick={performSearch}>
-                            🔍
-                        </button>
-
-                        {/* Cancel Button */}
+                        <button className="search-button" onClick={performSearch}>🔍</button>
                         {isSearching && (
-                            <button className="cancel-button" onClick={cancelSearch}>
-                                ❌
-                            </button>
+                            <button className="cancel-button" onClick={cancelSearch}>❌</button>
                         )}
                     </div>
 
-                    {/* Dokumentliste */}
                     {docs.length === 0 ? (
                         <p className="muted">Keine Dokumente vorhanden.</p>
                     ) : (
                         <ul className="document-list">
                             {docs.map((d) => (
                                 <li key={d.id} className="document-item">
+
+                                    {/* Kategorie Icons */}
+                                    {d.categoryName && (
+                                        <span
+                                            className="document-category-icon"
+                                            data-category={d.categoryName}
+                                            title={d.categoryName} // Tooltip
+                                        >
+                                            {getCategoryIcon(d.categoryName)}
+                                        </span>
+                                    )}
+
                                     <Link to={`/documents/${d.id}`} className="document-title">
                                         {d.title}
                                     </Link>
@@ -211,7 +241,6 @@ export default function Dashboard() {
                             <button type="submit" className="upload-button">
                                 {editing ? "💾 Speichern" : "📤 Hochladen"}
                             </button>
-
                             {editing && (
                                 <button
                                     type="button"

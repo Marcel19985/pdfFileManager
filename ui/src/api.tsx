@@ -11,6 +11,8 @@ export type DocumentDto = {
     description?: string;
     createdAt?: string;
     summary?: string | null;
+    categoryId?: number | null;
+    categoryName?: string | null;
 };
 
 // Alle Dokumente holen
