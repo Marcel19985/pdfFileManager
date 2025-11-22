@@ -16,4 +16,6 @@ public interface DocumentService {
     InputStream downloadFromMinio(String objectName);
     void updateSummary(UUID id, String summary, String model, Integer tokens);
     List<DocumentDto> search(String query);
+    void updateCategory(UUID id, String categoryName);
+
 }

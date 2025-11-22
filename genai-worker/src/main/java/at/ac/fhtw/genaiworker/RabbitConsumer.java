@@ -8,6 +8,7 @@ import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 public class RabbitConsumer {
     private static final Logger log = LoggerFactory.getLogger(RabbitConsumer.class);
@@ -51,6 +52,13 @@ public class RabbitConsumer {
 
 
                         String summary = GeminiClient.summarize(text); //Generiere Zusammenfassung via GeminiClient
+
+                        String category = GeminiClient.classify(text, List.of(
+                                "Schule", "Rechnung", "Brief",
+                                "Geschichte", "Wissenschaft",
+                                "Vertrag", "Medizin", "Technik", "Sonstiges"
+                        ));
+
                         int tokensApprox = Math.max(1, summary.length() / 4); //Zählt grob die Token (1 Token ≈ 4 Zeichen)
 
                         //Ergebnisobjekt bauen als JSON:
@@ -60,6 +68,7 @@ public class RabbitConsumer {
                         out.put("model", model);
                         out.put("tokens", tokensApprox);
                         out.put("createdAt", Instant.now().toString());
+                        out.put("category", category);
                         out.putNull("error");
 
                         //Neues JSON in RabbitMQ veröffentlichen -> Sendet die Zusammenfassung als neue Message in die genai.results Queue

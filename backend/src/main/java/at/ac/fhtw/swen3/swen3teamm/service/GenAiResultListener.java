@@ -34,6 +34,11 @@ public class GenAiResultListener {
                     result.model() != null ? result.model() : "gemini-2.0-flash",
                     result.tokens() != null ? result.tokens() : 0
             );
+
+            if (result.category() != null && !result.category().isBlank()) {
+                documentService.updateCategory(UUID.fromString(result.documentId()), result.category());
+            }
+
             log.info("Summary stored for document {}", result.documentId());
         } catch (Exception e) { //Vermutlich Fehler beim Speichern in der DB
             log.error("Failed to store summary for {}: {}",

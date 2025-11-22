@@ -100,5 +100,17 @@ public class DocumentController {
         return service.search(q);
     }
 
+    @PatchMapping("/{id}/category")
+    public ResponseEntity<Void> updateCategory(
+            @PathVariable UUID id,
+            @RequestParam String category
+    ) {
+        try {
+            service.updateCategory(id, category);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
 }

@@ -9,7 +9,8 @@ public record DocumentDto(
         UUID id,
         String title,
         String description,
-        String status,
         Instant createdAt,
-        String summary
+        String summary,
+        Long categoryId,    // nur die ID in DB
+        String categoryName // für Frontend-Anzeige
 ) {}

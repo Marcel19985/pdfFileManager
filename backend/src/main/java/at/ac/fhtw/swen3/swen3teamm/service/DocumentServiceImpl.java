@@ -17,6 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE; //in MessagingConfig definiert
 import at.ac.fhtw.swen3.swen3teamm.service.MinioService;
 import at.ac.fhtw.swen3.swen3teamm.service.ElasticsearchService;
+import at.ac.fhtw.swen3.swen3teamm.persistance.repository.CategoryRepository;
+import at.ac.fhtw.swen3.swen3teamm.persistance.CategoryEntity;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +41,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final RabbitTemplate rabbit;
     private final MinioService minioService;
     private final ElasticsearchService elasticsearchService;
+    private final CategoryRepository categoryRepo;
 
     @Override
     public DocumentDto upload(MultipartFile file, String title, String description) {
@@ -159,6 +163,19 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public InputStream downloadFromMinio(String objectName) {
         return minioService.download(objectName);
+    }
+
+    @Override
+    public void updateCategory(UUID id, String categoryName) {
+        var doc = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+
+        var cat = categoryRepo.findByNameIgnoreCase(categoryName)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryName));
+
+        doc.setCategory(cat);
+        repo.save(doc);
+        log.info("Category updated for document {} → {}", id, categoryName);
     }
 
 }
