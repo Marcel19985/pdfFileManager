@@ -1,6 +1,5 @@
 package at.ac.fhtw.swen3.swen3teamm.persistance;
 
-import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -13,12 +12,12 @@ class DocumentEntityTest {
     void onCreate_shouldSetCreatedAndUpdatedAt() {
         DocumentEntity entity = new DocumentEntity();
 
-        entity.onCreate(); //aufrufen
+        entity.onCreate(); // Aufruf der @PrePersist-Methode
 
-        //Prüfen ob gesetzt ist
+        // Prüfen, ob die Timestamps gesetzt wurden
         assertThat(entity.getCreatedAt()).isNotNull();
         assertThat(entity.getUpdatedAt()).isNotNull();
-        assertThat(entity.getCreatedAt()).isEqualTo(entity.getUpdatedAt()); //Zeitpunkte müssen gleich sein
+        assertThat(entity.getCreatedAt()).isEqualTo(entity.getUpdatedAt()); // Zeitpunkte müssen gleich sein
     }
 
     @Test
@@ -28,10 +27,23 @@ class DocumentEntityTest {
         Instant createdAtBefore = entity.getCreatedAt();
         Instant updatedAtBefore = entity.getUpdatedAt();
 
-        Thread.sleep(5); //kurze Pause
-        entity.onUpdate();
+        Thread.sleep(5); // kurze Pause
+        entity.onUpdate(); // Aufruf der @PreUpdate-Methode
 
-        assertThat(entity.getCreatedAt()).isEqualTo(createdAtBefore); //Unverändert bleibt
-        assertThat(entity.getUpdatedAt()).isAfter(updatedAtBefore); //nach dem Update ist späterer Zeitpunkt
+        // Prüfen, dass nur updatedAt geändert wurde
+        assertThat(entity.getCreatedAt()).isEqualTo(createdAtBefore); // createdAt bleibt gleich
+        assertThat(entity.getUpdatedAt()).isAfter(updatedAtBefore);   // updatedAt ist neuer
+    }
+
+    @Test
+    void category_shouldBeAssignable() {
+        DocumentEntity entity = new DocumentEntity();
+        CategoryEntity category = new CategoryEntity("TestCat", "Beschreibung");
+
+        entity.setCategory(category);
+
+        assertThat(entity.getCategory()).isNotNull();
+        assertThat(entity.getCategory().getName()).isEqualTo("TestCat");
+        assertThat(entity.getCategory().getDescription()).isEqualTo("Beschreibung");
     }
 }

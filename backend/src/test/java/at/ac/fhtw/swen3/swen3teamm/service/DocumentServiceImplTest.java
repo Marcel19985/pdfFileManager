@@ -38,7 +38,6 @@ class DocumentServiceImplTest {
 
     @Test
     void upload_success_persists_uploadsToMinio_and_publishesOcrJob() throws Exception {
-        // arrange
         var bytes = new byte[]{1,2,3,4};
         var file = new MockMultipartFile("file", "test.pdf", "application/pdf", bytes);
         var entity = newEntity("Test Title", "Desc");
@@ -47,33 +46,28 @@ class DocumentServiceImplTest {
         // Mapper gibt DTO zurück
         when(mapper.toDto(any(DocumentEntity.class))).thenAnswer(inv -> {
             DocumentEntity e = inv.getArgument(0);
-            return new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null);
+            return new DocumentDto(
+                    e.getId(),
+                    e.getTitle(),
+                    e.getDescription(),
+                    e.getCreatedAt(),
+                    "UPLOADED",
+                    e.getCategory() != null ? e.getCategory().getId() : null,
+                    e.getCategory() != null ? e.getCategory().getName() : null
+            );
         });
 
         ArgumentCaptor<OcrJobDto> jobCaptor = ArgumentCaptor.forClass(OcrJobDto.class);
 
-        // act
         var result = service.upload(file, "Test Title", "Desc");
 
-        // assert
         assertNotNull(result);
         assertEquals("Test Title", result.title());
 
-        // DB persistiert
         verify(repo, times(1)).save(any(DocumentEntity.class));
-
-        // MinIO Upload mit erwarteten Parametern
-        verify(minio, times(1)).upload(
-                eq(entity.getId() + ".pdf"),
-                any(InputStream.class),
-                eq((long) bytes.length)
-        );
-
-        // OCR Job gesendet
+        verify(minio, times(1)).upload(eq(entity.getId() + ".pdf"), any(InputStream.class), eq((long) bytes.length));
         verify(rabbit, times(1)).convertAndSend(eq(""), eq(OCR_QUEUE), jobCaptor.capture());
         assertEquals(entity.getId(), jobCaptor.getValue().documentId());
-
-        // Mapper zu DTO
         verify(mapper, times(1)).toDto(entity);
     }
 
@@ -90,16 +84,13 @@ class DocumentServiceImplTest {
         var file = new MockMultipartFile("file", "a.pdf", "application/pdf", bytes);
         var entity = newEntity("t", "d");
         when(repo.save(any())).thenReturn(entity);
-        doThrow(new RuntimeException("minio down"))
-                .when(minio).upload(anyString(), any(InputStream.class), anyLong());
+        doThrow(new RuntimeException("minio down")).when(minio).upload(anyString(), any(InputStream.class), anyLong());
 
         when(mapper.toDto(any(DocumentEntity.class))).thenReturn(
-                new DocumentDto(entity.getId(), entity.getTitle(), entity.getDescription(), "UPLOADED", entity.getCreatedAt(), null)
+                new DocumentDto(entity.getId(), entity.getTitle(), entity.getDescription(), entity.getCreatedAt(), "UPLOADED", null, null)
         );
 
         assertDoesNotThrow(() -> service.upload(file, "t", "d"));
-
-        // auch bei MinIO-Fehler wird veröffentlicht
         verify(rabbit).convertAndSend(eq(""), eq(OCR_QUEUE), any(OcrJobDto.class));
     }
 
@@ -108,18 +99,14 @@ class DocumentServiceImplTest {
         var file = new MockMultipartFile("file", "a.pdf", "application/pdf", new byte[]{1});
         var entity = newEntity("t", "d");
         when(repo.save(any())).thenReturn(entity);
-        // MinIO ok
         doNothing().when(minio).upload(anyString(), any(InputStream.class), anyLong());
-        // Publish schlägt fehl
-        doThrow(new AmqpException("down"))
-                .when(rabbit).convertAndSend(eq(""), eq(OCR_QUEUE), any(OcrJobDto.class));
+        doThrow(new AmqpException("down")).when(rabbit).convertAndSend(eq(""), eq(OCR_QUEUE), any(OcrJobDto.class));
 
         assertThrows(MessagingException.class, () -> service.upload(file, "t", "d"));
 
         verify(repo).save(any());
         verify(minio).upload(eq(entity.getId() + ".pdf"), any(InputStream.class), eq(1L));
         verify(rabbit).convertAndSend(eq(""), eq(OCR_QUEUE), any(OcrJobDto.class));
-        // Mapper sollte in diesem Fehlerpfad nicht mehr aufgerufen werden
         verifyNoInteractions(mapper);
     }
 
@@ -130,7 +117,7 @@ class DocumentServiceImplTest {
         var e = newEntity("Doc1", null);
         when(repo.findAll()).thenReturn(List.of(e));
         when(mapper.toDto(anyList())).thenReturn(
-                List.of(new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null))
+                List.of(new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), e.getCreatedAt(), "UPLOADED", null, null))
         );
 
         var result = service.getAll();
@@ -146,7 +133,7 @@ class DocumentServiceImplTest {
         var e = newEntity("DocX", null);
         when(repo.findById(e.getId())).thenReturn(Optional.of(e));
         when(mapper.toDto(e)).thenReturn(
-                new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), "UPLOADED", e.getCreatedAt(), null)
+                new DocumentDto(e.getId(), e.getTitle(), e.getDescription(), e.getCreatedAt(), "UPLOADED", null, null)
         );
 
         var dto = service.getById(e.getId());
@@ -161,7 +148,6 @@ class DocumentServiceImplTest {
     void getById_notFound_throwsDocumentNotFound() {
         var id = UUID.randomUUID();
         when(repo.findById(id)).thenReturn(Optional.empty());
-
         assertThrows(DocumentNotFoundException.class, () -> service.getById(id));
     }
 
@@ -189,6 +175,7 @@ class DocumentServiceImplTest {
         verifyNoInteractions(minio);
         verify(repo, never()).deleteById(any());
     }
+
 
     // --- Helper ---
 
