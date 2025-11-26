@@ -40,6 +40,9 @@ public class DocumentEntity {
 
     private Instant summaryCreatedAt; //Wann summary erstellt wurde
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category;
 
     @PrePersist //wird aufgerufen bevor die Entität in die DB geschrieben wird
     public void onCreate() {

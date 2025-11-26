@@ -25,26 +25,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DocumentControllerTest {
 
     @Autowired
-    private MockMvc mockMvc; //simuliert Webserver: Model View Controller
+    private MockMvc mockMvc;
 
     @MockitoBean
-    private DocumentService documentService; //Service wird gemobbt
-
+    private DocumentService documentService;
 
     @Test
     void upload_shouldReturnCreatedDocument() throws Exception {
-        //Daten vorbereiten
         UUID id = UUID.randomUUID();
-        DocumentDto dto = new DocumentDto(id, "My Title", null, "UPLOADED", Instant.now(), null);
+
+        DocumentDto dto = new DocumentDto(
+                id,
+                "My Title",
+                null,
+                Instant.now(),
+                null,
+                1L,           // categoryId
+                "TestCat"     // categoryName
+        );
+
         MockMultipartFile file = new MockMultipartFile("file", "test.pdf",
                 "application/pdf", "dummy content".getBytes());
         MockMultipartFile titlePart = new MockMultipartFile("title", "", "text/plain", "My Title".getBytes());
         MockMultipartFile descPart = new MockMultipartFile("description", "", "text/plain", "Desc".getBytes());
 
-        //gibt dto zurück
         when(documentService.upload(any(), anyString(), anyString())).thenReturn(dto);
 
-        //HTTP-Request simulieren und Response prüfen
         mockMvc.perform(multipart("/api/documents")
                         .file(file)
                         .file(titlePart)
@@ -54,32 +60,40 @@ class DocumentControllerTest {
                 .andExpect(header().string("Location", "/api/documents/" + id))
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.title").value("My Title"))
-                .andExpect(jsonPath("$.status").value("UPLOADED"));
+                .andExpect(jsonPath("$.categoryId").value(1L))
+                .andExpect(jsonPath("$.categoryName").value("TestCat"));
     }
-
 
     @Test
     void getAll_shouldReturnListOfDocuments() throws Exception {
         UUID id = UUID.randomUUID();
+
         when(documentService.getAll()).thenReturn(List.of(
-                new DocumentDto(id, "Doc1", "desc", "NEW" ,Instant.now(), null)
+                new DocumentDto(id, "Doc1", "desc", Instant.now(), null, 2L, "Rechnung")
         ));
 
         mockMvc.perform(get("/api/documents"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(id.toString()))
-                .andExpect(jsonPath("$[0].title").value("Doc1"));
+                .andExpect(jsonPath("$[0].title").value("Doc1"))
+                .andExpect(jsonPath("$[0].categoryId").value(2L))
+                .andExpect(jsonPath("$[0].categoryName").value("Rechnung"));
     }
 
     @Test
     void getById_shouldReturnDocumentIfFound() throws Exception {
         UUID id = UUID.randomUUID();
-        when(documentService.getById(id)).thenReturn(new DocumentDto(id, "DocX", null, "NEW", Instant.now(), null));
+
+        when(documentService.getById(id)).thenReturn(
+                new DocumentDto(id, "DocX", null, Instant.now(), null, 3L, "Brief")
+        );
 
         mockMvc.perform(get("/api/documents/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.title").value("DocX"));
+                .andExpect(jsonPath("$.title").value("DocX"))
+                .andExpect(jsonPath("$.categoryId").value(3L))
+                .andExpect(jsonPath("$.categoryName").value("Brief"));
     }
 
     @Test
@@ -109,4 +123,28 @@ class DocumentControllerTest {
         mockMvc.perform(delete("/api/documents/{id}", id))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void updateCategory_shouldReturnNoContentOnSuccess() throws Exception {
+        UUID id = UUID.randomUUID();
+        doNothing().when(documentService).updateCategory(id, "Schule");
+
+        mockMvc.perform(patch("/api/documents/{id}/category", id)
+                        .param("category", "Schule"))
+                .andExpect(status().isNoContent());
+
+        Mockito.verify(documentService).updateCategory(id, "Schule");
+    }
+
+    @Test
+    void updateCategory_shouldReturnNotFoundIfDocumentMissing() throws Exception {
+        UUID id = UUID.randomUUID();
+        Mockito.doThrow(new IllegalArgumentException("Document not found"))
+                .when(documentService).updateCategory(id, "Schule");
+
+        mockMvc.perform(patch("/api/documents/{id}/category", id)
+                        .param("category", "Schule"))
+                .andExpect(status().isNotFound());
+    }
+
 }

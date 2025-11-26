@@ -8,5 +8,6 @@ public record GenAiResultDto(
         String model,
         Integer tokens,
         Instant createdAt,
+        String category,
         String error
 ) {}

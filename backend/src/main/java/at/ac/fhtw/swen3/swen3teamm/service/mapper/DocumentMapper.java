@@ -11,10 +11,20 @@ import java.util.List;
 public class DocumentMapper extends AbstractMapper<DocumentEntity, DocumentDto> {
     @Override
     public DocumentDto toDto(DocumentEntity document) {
-        if (document == null) {
-            return null;
-        }
-        return new DocumentDto(document.getId(), document.getTitle(), document.getDescription(), "UPLOADED", document.getCreatedAt(), document.getSummary());
+        if (document == null) return null;
+
+        Long catId = document.getCategory() != null ? document.getCategory().getId() : null;
+        String catName = document.getCategory() != null ? document.getCategory().getName() : null;
+
+        return new DocumentDto(
+                document.getId(),
+                document.getTitle(),
+                document.getDescription(),
+                document.getCreatedAt(),
+                document.getSummary(),
+                catId,
+                catName
+        );
     }
 
     @Override

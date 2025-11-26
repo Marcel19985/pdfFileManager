@@ -34,6 +34,26 @@ services:
       retries: 10
     restart: unless-stopped
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTIC_PASSWORD=changeme
+      - xpack.security.enabled=false  # deaktiviert HTTPS/Security (nur lokal)
+      - http.host=0.0.0.0
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:changeme -f http://localhost:9200"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -49,8 +69,13 @@ services:
       # optional sinnvoll:
       # SPRING_JPA_HIBERNATE_DDL_AUTO: update
       # SERVER_PORT: 8081
+      ELASTIC_HOST: http://elasticsearch:9200
+      ELASTIC_USER: elastic
+      ELASTIC_PASS: changeme
     depends_on:
       postgres:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     expose:
       - "8081"           # intern für die UI/NGINX
@@ -69,8 +94,13 @@ services:
       RABBITMQ_PASS: pass
       QUEUE_NAME: ocr.jobs
       RESULT_QUEUE: ocr.results
+      ELASTIC_HOST: http://elasticsearch:9200
+      ELASTIC_USER: elastic
+      ELASTIC_PASS: changeme
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     ports:
       - "8082:8082"   # falls du eine einfache Health/Info-HTTP-Route im Worker willst (optional)
@@ -128,5 +158,6 @@ services:
 
 volumes:
   pgdata:
+  es_data:
   rabbitmq_data:
   minio_data:

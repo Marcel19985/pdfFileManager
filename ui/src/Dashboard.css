@@ -210,3 +210,50 @@ html, body {
     transform: scale(1.02);
 }
 
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #212350;
+    box-shadow: 0 0 4px rgba(0, 120, 255, 0.4);
+}
+
+.search-button {
+    padding: 10px 16px;
+    background-color: #212350;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s ease;
+}
+
+.search-button:hover {
+    background-color: #2e3068;
+}
+
+.document-item {
+    position: relative; /* notwendig für Icon-Position */
+}
+
+.document-category-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+    cursor: default;
+}

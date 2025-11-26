@@ -5,6 +5,7 @@ import at.ac.fhtw.swen3.swen3teamm.persistance.repository.DocumentRepository;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.OcrJobDto;
 import at.ac.fhtw.swen3.swen3teamm.service.mapper.DocumentMapper;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,11 +16,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import static at.ac.fhtw.swen3.swen3teamm.config.MessagingConfig.OCR_QUEUE; //in MessagingConfig definiert
 import at.ac.fhtw.swen3.swen3teamm.service.MinioService;
+import at.ac.fhtw.swen3.swen3teamm.service.ElasticsearchService;
+import at.ac.fhtw.swen3.swen3teamm.persistance.repository.CategoryRepository;
+import at.ac.fhtw.swen3.swen3teamm.persistance.CategoryEntity;
 
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,6 +40,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentMapper mapper;
     private final RabbitTemplate rabbit;
     private final MinioService minioService;
+    private final ElasticsearchService elasticsearchService;
+    private final CategoryRepository categoryRepo;
 
     @Override
     public DocumentDto upload(MultipartFile file, String title, String description) {
@@ -92,11 +101,19 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         String objectName = id + ".pdf";
+
         try {
             minioService.delete(objectName);
             log.info("Deleted file from MinIO: {}", objectName);
         } catch (Exception e) {
             log.warn("Failed to delete file from MinIO: {}", objectName, e);
+        }
+
+        try {
+            elasticsearchService.deleteDocument(id.toString());
+            log.info("Deleted document from Elasticsearch: {}", id);
+        } catch (Exception e) {
+            log.warn("Failed to delete document from Elasticsearch: {}", id, e);
         }
 
         repo.deleteById(id);
@@ -127,8 +144,38 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    public List<DocumentDto> search(String query) {
+        log.info("Search called with query: {}", query);
+        try {
+            List<String> ids = elasticsearchService.searchDocumentsByText(query);
+            log.info("Elasticsearch returned IDs: {}", ids);
+            return ids.stream()
+                    .map(UUID::fromString)
+                    .map(this::getById)
+                    .collect(Collectors.toList());
+        } catch (IOException | ElasticsearchException e) {
+            log.error("Elasticsearch search failed", e);
+            // Lieber "leer" zurückgeben statt 500 → UI bleibt happy
+            return List.of();
+        }
+    }
+
+    @Override
     public InputStream downloadFromMinio(String objectName) {
         return minioService.download(objectName);
+    }
+
+    @Override
+    public void updateCategory(UUID id, String categoryName) {
+        var doc = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+
+        var cat = categoryRepo.findByNameIgnoreCase(categoryName)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categoryName));
+
+        doc.setCategory(cat);
+        repo.save(doc);
+        log.info("Category updated for document {} → {}", id, categoryName);
     }
 
 }
