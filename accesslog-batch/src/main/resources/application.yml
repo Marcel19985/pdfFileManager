@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/paperless
+    username: test
+    password: paper
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+accesslog:
+  input-dir: ${ACCESSLOG_INPUT_DIR:/opt/batch/in}
+  archive-dir: ${ACCESSLOG_ARCHIVE_DIR:/opt/batch/archive}
+  error-dir: ${ACCESSLOG_ERROR_DIR:/opt/batch/error}
+  file-pattern: ${ACCESSLOG_FILE_PATTERN:access-*.xml}
+  cron: ${ACCESSLOG_CRON:0 0 1 * * *}
+
+logging:
+  level:
+    root: INFO
+    at.ac.fhtw.swen3.accesslog: DEBUG

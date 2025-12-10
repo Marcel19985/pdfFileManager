@@ -156,6 +156,30 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  accesslog-batch:
+    build:
+      context: ./accesslog-batch
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/paperless
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: paper
+
+      ACCESSLOG_INPUT_DIR: /opt/batch/in
+      ACCESSLOG_ARCHIVE_DIR: /opt/batch/archive
+      ACCESSLOG_ERROR_DIR: /opt/batch/error
+      ACCESSLOG_FILE_PATTERN: "access-*.xml"
+      ACCESSLOG_CRON: "0/30 * * * * *"   # alle 30 Sekunden für Debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./accesslogs/in:/opt/batch/in
+      - ./accesslogs/archive:/opt/batch/archive
+      - ./accesslogs/error:/opt/batch/error
+    restart: unless-stopped
+
+
 volumes:
   pgdata:
   es_data:
