@@ -12,13 +12,13 @@ public class GeminiClient {
     private static final Logger log = LoggerFactory.getLogger(GeminiClient.class); // Logger für Konsolen- bzw. Container-Logs
     private static final ObjectMapper MAPPER = new ObjectMapper(); // JSON (De-)Serialisierung mit Jackson
 
-    static String API_KEY = System.getenv("GEMINI_API_KEY");
-    private static final String MODEL = System.getenv().getOrDefault("GENAI_MODEL", "gemini-2.0-flash");
-    static HttpClient HTTP = HttpClient.newBuilder()
+    private static final String API_KEY = System.getenv("GEMINI_API_KEY");
+    private static final String MODEL = System.getenv().getOrDefault("GENAI_MODEL", "gemini-2.5-flash");
+    private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20)) //timeout 20 Sekunden
             .build();
 
-    public static String summarize(String text) throws Exception { //Sendet den Dateiinhalt an die Gemini-API und gibt die erzeugte Zusammenfassung zurück
+    public static String summarize(String text) throws Exception { //Sendet den Dateinhalt an die Gemini-API und gibt die erzeugte Zusammenfassung zurück
         if (API_KEY == null || API_KEY.isBlank()) // Prüfen, ob API-Key gesetzt wurde
             throw new IllegalStateException("GEMINI_API_KEY not set!");
 
@@ -79,4 +79,66 @@ public class GeminiClient {
         if (!txt.isMissingNode()) return txt.asText().trim();
         return body; // last resort
     }
+
+    //für neues Use Case :) Kategorisieren
+    public static String classify(String text, java.util.List<String> categories) throws Exception {
+        if (API_KEY == null || API_KEY.isBlank())
+            throw new IllegalStateException("GEMINI_API_KEY not set!");
+
+        String clipped = text == null ? "" : text;
+        if (clipped.length() > 20000) clipped = clipped.substring(0, 20000);
+
+        // Prompt für Klassifizierung:
+        String prompt =
+                "Ordne den folgenden Text in eine der folgenden Kategorien ein:\n" +
+                        String.join(", ", categories) +
+                        "\nGib NUR den Kategorienamen zurück.\n\n" +
+                        clipped;
+
+        // Request-Body wie bereits bei summarize():
+        ObjectNode root = MAPPER.createObjectNode();
+        var contents = root.putArray("contents");
+        var content0 = contents.addObject();
+        content0.put("role", "user");
+
+        var parts = content0.putArray("parts");
+        parts.addObject().put("text", prompt);
+
+        String payload = MAPPER.writeValueAsString(root);
+
+        URI uri = URI.create(
+                "https://generativelanguage.googleapis.com/v1/models/"
+                        + MODEL + ":generateContent?key=" + API_KEY
+        );
+
+        HttpRequest req = HttpRequest.newBuilder(uri)
+                .timeout(Duration.ofSeconds(60))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .build();
+
+        int attempts = 0;
+        while (true) {
+            attempts++;
+            HttpResponse<String> res = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+
+            if (res.statusCode() == 200) {
+                String result = extractText(res.body());
+                return result.trim();
+            }
+
+            if (res.statusCode() == 429 && attempts < 4) {
+                long backoff = (long) Math.pow(2, attempts) * 500L;
+                log.warn("Gemini 429 (classify), retrying in {} ms", backoff);
+                Thread.sleep(backoff);
+                continue;
+            }
+
+            throw new RuntimeException("Gemini API classify failed (" +
+                    res.statusCode() + "): " + res.body());
+        }
+    }
+
+
+
 }

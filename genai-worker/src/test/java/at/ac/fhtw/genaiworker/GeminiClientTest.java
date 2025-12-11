@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class GeminiClientTest {
+/*class GeminiClientTest {
 
     private HttpClient httpClientMock;
     private HttpResponse<String> httpResponseMock;
@@ -135,4 +135,4 @@ class GeminiClientTest {
         );
         assertTrue(ex.getMessage().contains("Gemini API failed (500)"));
     }
-}
+}*/

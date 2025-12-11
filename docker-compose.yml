@@ -147,7 +147,7 @@ services:
       RABBITMQ_PASS: pass
       GENAI_INPUT_QUEUE: ocr.results # konsumiert die OCR-Ergebnisse
       GENAI_OUTPUT_QUEUE: genai.results
-      GENAI_MODEL: ${GENAI_MODEL:-gemini-2.0-flash}
+      GENAI_MODEL: ${GENAI_MODEL:-gemini-2.5-flash}
       # GEMINI_API_KEY kommt aus .env
     depends_on:
       rabbitmq:

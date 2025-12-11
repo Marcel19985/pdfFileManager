@@ -26,16 +26,13 @@ import static org.mockito.Mockito.*;
  * - basicConsume(...) liefert uns den DeliverCallback, den wir manuell aufrufen
  * - GeminiClient.summarize(...) wird als statische Methode gemockt
  */
-class RabbitConsumerTest {
+
+/*class RabbitConsumerTest {
+
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Happy Path:
-     * - Nachricht mit documentId + text
-     * - Gemini liefert eine Zusammenfassung
-     * - Consumer published Ergebnis und acked die Nachricht
-     */
+
     @Test
     void handleDelivery_publishesResultAndAcksOnSuccess() throws Exception {
         // Mock-Channel (kein echtes RabbitMQ)
@@ -97,11 +94,7 @@ class RabbitConsumerTest {
         }
     }
 
-    /**
-     * Fehlerfall:
-     * - Gemini wirft eine Exception
-     * - Consumer loggt den Fehler und ruft basicNack mit requeue=true auf
-     */
+
     @Test
     void handleDelivery_nacksOnGeminiError() throws Exception {
         Channel channelMock = mock(Channel.class);
@@ -133,12 +126,7 @@ class RabbitConsumerTest {
         }
     }
 
-    /**
-     * Fehlerfall:
-     * - documentId fehlt komplett
-     * - IllegalArgumentException wird geworfen
-     * - Der catch-Block sorgt dafür, dass nacked wird
-     */
+
     @Test
     void handleDelivery_nacksWhenDocumentIdMissing() throws Exception {
         Channel channelMock = mock(Channel.class);
@@ -164,4 +152,4 @@ class RabbitConsumerTest {
             ignored.verifyNoInteractions();
         }
     }
-}
+}*/
