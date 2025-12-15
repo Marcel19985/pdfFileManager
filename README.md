@@ -1,6 +1,13 @@
 # pdfFileManager
 Frontend und Backend für einen PDF File Manager mit Volltextsuche der hochgeladenen Dateien und automatischer Kategorisierung.
 
+Beim Hochladen eines PDF-Dokuments speichert das Backend zunächst die Metadaten in einer PostgreSQL-Datenbank und legt die Datei in MinIO ab. Anschließend wird ein OCR-Job über RabbitMQ in die Queue ocr.jobs gestellt.
+
+Der ocr-worker liest diese Queue aus, extrahiert den Text des PDFs mithilfe von Tesseract und sendet das Ergebnis in die Queue ocr.results. Der extrahierte Text wird in Elasticsearch gespeichert, um eine Volltextsuche zu ermöglichen.
+
+Der genai-worker konsumiert Nachrichten aus ocr.results, erzeugt daraus Zusammenfassungen, kategorisiert Dokumente basierent am Inhalt und veröffentlicht die Ergebnisse in der Queue genai.results, damit sie vom Backend weiterverarbeitet werden können. Die UI kommuniziert ausschließlich über REST mit dem Backend.
+
+Das Modul accesslog-batch liest xml Files ein, die Zugriffsstatistiken repräsentieren. Diese werden mit der Dokumenten-ID und der Anzahl an Zugriffen in einer eigenen DB-Tabelle gespeichert. Derzeit wird das Verzeichnis accesslogs/in alle 30 Sekunden überprüft (für Testzwecke, in Produktion würde täglich mehr Sinn machen) und die verarbeiteten Files in archive (bzw. bei Fehler in error) abgelegt
 
 # Programm starten
 Docker Desktop starten

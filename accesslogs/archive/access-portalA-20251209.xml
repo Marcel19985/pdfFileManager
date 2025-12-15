@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<access-log date="2025-12-09" sourceSystem="PortalA">
+    <entry>
+        <documentId>91113111-1111-1111-1111-111111111111</documentId>
+        <count>10</count>
+    </entry>
+    <entry>
+        <documentId>92252222-2222-2222-2222-222222222222</documentId>
+        <count>100</count>
+    </entry>
+</access-log>
