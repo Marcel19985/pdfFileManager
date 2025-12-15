@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - "feature/**"
+    branches: [ "main", "feature/**" ]
   pull_request:
 
 jobs:
@@ -18,30 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug repo layout
-        run: |
-          pwd
-          ls -la
-          echo "---- .github ----"
-          ls -la .github || true
-          echo "---- root mvnw ----"
-          ls -la mvnw mvnw.cmd .mvn/wrapper/ || true
-          echo "---- module pom ----"
-          ls -la ${{ matrix.module }}/pom.xml || true
-          echo "---- module mvnw ----"
-          ls -la ${{ matrix.module }}/mvnw || true
-          echo "---- file info (line endings) ----"
-          file mvnw || true
-          head -n 2 mvnw || true
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
-      - name: Make mvnw executable (root)
-        run: chmod +x mvnw
-
       - name: Run tests
-        run: ./mvnw -B -ntp -f ${{ matrix.module }}/pom.xml clean test
+        run: mvn -B -ntp -f ${{ matrix.module }}/pom.xml clean test
