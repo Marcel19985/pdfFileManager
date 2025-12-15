@@ -1,6 +1,7 @@
 package at.ac.fhtw.swen3.swen3teamm.service;
 
 import at.ac.fhtw.swen3.swen3teamm.persistance.DocumentEntity;
+import at.ac.fhtw.swen3.swen3teamm.persistance.repository.CategoryRepository;
 import at.ac.fhtw.swen3.swen3teamm.persistance.repository.DocumentRepository;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.DocumentDto;
 import at.ac.fhtw.swen3.swen3teamm.service.dto.OcrJobDto;
@@ -31,6 +32,9 @@ class DocumentServiceImplTest {
     @Mock DocumentMapper mapper;
     @Mock RabbitTemplate rabbit;
     @Mock MinioService minio;
+    @Mock ElasticsearchService elasticsearchService;
+    @Mock CategoryRepository categoryRepo;
+
 
     @InjectMocks DocumentServiceImpl service;
 
