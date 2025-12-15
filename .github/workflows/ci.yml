@@ -10,21 +10,31 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - backend
-          - genai-worker
-          - accesslog-batch
+        module: [ backend, genai-worker, accesslog-batch ]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
+      - name: Debug repo layout
+        run: |
+          pwd
+          ls -la
+          echo "---- .github ----"
+          ls -la .github || true
+          echo "---- root mvnw ----"
+          ls -la mvnw mvnw.cmd .mvn/wrapper/ || true
+          echo "---- module pom ----"
+          ls -la ${{ matrix.module }}/pom.xml || true
+          echo "---- module mvnw ----"
+          ls -la ${{ matrix.module }}/mvnw || true
+          echo "---- file info (line endings) ----"
+          file mvnw || true
+          head -n 2 mvnw || true
+
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
