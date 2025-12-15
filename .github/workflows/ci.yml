@@ -30,6 +30,10 @@ jobs:
           java-version: "21"
           cache: maven
 
+      - name: Make mvnw executable
+        working-directory: ${{ matrix.module }}
+        run: chmod +x mvnw
+
       - name: Run tests
         working-directory: ${{ matrix.module }}
         run: ./mvnw -B -ntp clean test
