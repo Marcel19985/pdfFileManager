@@ -1,22 +1,24 @@
 # pdfFileManager
-Frontend and Backend for PDF file manager with full text search for scans
+Frontend und Backend für einen PDF File Manager mit Volltextsuche der hochgeladenen Dateien und automatischer Kategorisierung.
+
 
 # Programm starten
 Docker Desktop starten
 im Terminal des obersten Verzeichnisses eingeben: docker compose up --build
 
-Projekt sieht man unter http://localhost/ oder http://localhost:80 (ist nämlich das Selbe)
+Projekt sieht man unter http://localhost/ oder http://localhost:80
 
-Curl Script ausführen (doppelklicken) (davor aber PFAD anpassen (kommt später noch in eine .properties))
-oder test unter maven
+# REST API Testen mit Postman
+DocumentController.postman_collection.json in Postman importieren.
+Im Environment eine neue variable anlegen -> Variable: baseUrl, Value: http://localhost
 
-# Prozess Killen (VON EINEM ANDEREN PROJEKT)
+# Falls notwendig (Docker belegt Ports): Prozess Killen
 cmd öffnen
-Eingabe: netstat -ano | findstr :5432
+Eingabe: netstat -ano | findstr :<port>
 ganz am ende steht dann eine ID
 taskkill /ID **** /F
 
-# DB-Shell öffnen
+# DB-Shell öffnen (falls die query option in IntelliJ nicht funktioniert)
 in Terminal eingeben: docker exec -it $(docker ps -qf "name=postgres") psql -U test -d paperless
 Dokument upload checken: SELECT * FROM documents;
 Beenden: \q

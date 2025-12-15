@@ -1,0 +1,59 @@
+{
+	"info": {
+		"_postman_id": "8ae72682-de2e-4cb7-b32f-57a9939b3824",
+		"name": "DocumentController",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50834640",
+		"_collection_link": "https://if23b093-7306841.postman.co/workspace/Marcel-G%25C3%25B6ssl's-Workspace~c85cf2fa-2a47-4e2d-8f44-29a085ab2cf6/collection/50834640-8ae72682-de2e-4cb7-b32f-57a9939b3824?action=share&source=collection_link&creator=50834640"
+	},
+	"item": [
+		{
+			"name": "Post document",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get document by ID",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Put document",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Document",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "PDF download",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
