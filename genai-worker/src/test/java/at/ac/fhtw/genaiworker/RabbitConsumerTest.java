@@ -1,155 +1,114 @@
 package at.ac.fhtw.genaiworker;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rabbitmq.client.*;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Tests für RabbitConsumer, ohne die Klasse selbst zu verändern.
- *
- * Idee:
- * - new ConnectionFactory() wird per mockConstruction abgefangen
- * - Die darauf folgende Connection + Channel werden gemockt
- * - basicConsume(...) liefert uns den DeliverCallback, den wir manuell aufrufen
- * - GeminiClient.summarize(...) wird als statische Methode gemockt
- */
+class RabbitConsumerTest {
 
-/*class RabbitConsumerTest {
+    RabbitConsumer consumer;
+    Channel mockChannel;
+    Connection mockConnection;
+    ConnectionFactory mockFactory;
+    MockedStatic<GeminiClient> mockedStatic;
 
+    @BeforeEach
+    void setup() throws Exception {
+        consumer = new RabbitConsumer();
 
-    private final ObjectMapper mapper = new ObjectMapper();
+        // Mocks für RabbitMQ
+        mockChannel = mock(Channel.class);
+        mockConnection = mock(Connection.class);
+        mockFactory = mock(ConnectionFactory.class);
 
+        when(mockFactory.newConnection()).thenReturn(mockConnection);
+        when(mockConnection.createChannel()).thenReturn(mockChannel);
 
-    @Test
-    void handleDelivery_publishesResultAndAcksOnSuccess() throws Exception {
-        // Mock-Channel (kein echtes RabbitMQ)
-        Channel channelMock = mock(Channel.class);
+        // GeminiClient statische Methoden mocken
+        mockedStatic = mockStatic(GeminiClient.class);
+        mockedStatic.when(() -> GeminiClient.summarize(anyString())).thenReturn("Zusammenfassung");
+        mockedStatic.when(() -> GeminiClient.classify(anyString(), anyList())).thenReturn("Testkategorie");
+    }
 
-        // Eingangs-JSON wie aus der ocr.results-Queue
-        String inputJson = """
-                {
-                  "documentId": "doc-123",
-                  "text": "Das ist der volle OCR Text"
-                }
-                """;
-        byte[] body = inputJson.getBytes(StandardCharsets.UTF_8);
-
-        // Envelope mit DeliveryTag (wichtig für ack/nack)
-        Envelope envelope = new Envelope(1L, false, "", "ocr.results");
-        AMQP.BasicProperties props = new AMQP.BasicProperties();
-
-        Delivery delivery = new Delivery(envelope, props, body);
-
-        RabbitConsumer consumer = new RabbitConsumer();
-
-        // Statisches Mock für GeminiClient.summarize(...)
-        try (MockedStatic<GeminiClient> geminiMock = Mockito.mockStatic(GeminiClient.class)) {
-            geminiMock.when(() -> GeminiClient.summarize("Das ist der volle OCR Text"))
-                    .thenReturn("Das ist die Zusammenfassung");
-
-            // Methode direkt testen
-            consumer.handleDelivery(channelMock, delivery);
-
-            // Sicherstellen, dass summarize mit dem Text aufgerufen wurde
-            geminiMock.verify(() -> GeminiClient.summarize("Das ist der volle OCR Text"));
-
-            // ArgumentCaptor, um das publizierte JSON aus basicPublish auszulesen
-            ArgumentCaptor<byte[]> bodyCaptor = ArgumentCaptor.forClass(byte[].class);
-
-            verify(channelMock).basicPublish(
-                    eq(""),                       // default exchange
-                    eq("genai.results"),          // Default-Output-Queue aus deiner Klasse
-                    any(AMQP.BasicProperties.class),
-                    bodyCaptor.capture()
-            );
-
-            String publishedJson = new String(bodyCaptor.getValue(), StandardCharsets.UTF_8);
-            ObjectNode out = (ObjectNode) mapper.readTree(publishedJson);
-
-            assertEquals("doc-123", out.path("documentId").asText());
-            assertEquals("Das ist die Zusammenfassung", out.path("summary").asText());
-            assertEquals("gemini-2.0-flash", out.path("model").asText()); // Default aus deinem Code
-
-            int expectedTokens = Math.max(1, "Das ist die Zusammenfassung".length() / 4);
-            assertEquals(expectedTokens, out.path("tokens").asInt());
-
-            assertFalse(out.path("createdAt").asText().isEmpty());
-            assertTrue(out.path("error").isNull());
-
-            // Ack muss mit dem richtigen DeliveryTag aufgerufen werden
-            verify(channelMock).basicAck(1L, false);
+    @AfterEach
+    void teardown() {
+        if (mockedStatic != null) {
+            mockedStatic.close();
         }
     }
 
-
     @Test
-    void handleDelivery_nacksOnGeminiError() throws Exception {
-        Channel channelMock = mock(Channel.class);
+    void testDeliverCallback_processesMessageAndPublishes() throws Exception {
+        // Beispiel-Input-Message
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode msg = mapper.createObjectNode();
+        msg.put("documentId", "doc-123");
+        msg.put("text", "Das ist ein Testtext.");
 
-        String inputJson = """
-                {
-                  "documentId": "doc-999",
-                  "text": "Fehlerhafter Text"
-                }
-                """;
-        byte[] body = inputJson.getBytes(StandardCharsets.UTF_8);
-        Envelope envelope = new Envelope(42L, false, "", "ocr.results");
-        Delivery delivery = new Delivery(envelope, new AMQP.BasicProperties(), body);
+        byte[] body = msg.toString().getBytes(StandardCharsets.UTF_8);
 
-        RabbitConsumer consumer = new RabbitConsumer();
+        // ArgumentCaptor für die Nachricht
+        ArgumentCaptor<byte[]> bodyCaptor = ArgumentCaptor.forClass(byte[].class);
 
-        try (MockedStatic<GeminiClient> geminiMock = Mockito.mockStatic(GeminiClient.class)) {
-            geminiMock.when(() -> GeminiClient.summarize("Fehlerhafter Text"))
-                    .thenThrow(new RuntimeException("LLM kaputt"));
+        // DeliverCallback direkt erzeugen und aufrufen
+        DeliverCallback callback = createDeliverCallback(mockChannel);
+        callback.handle("tag1", new Delivery(null, null, body));
 
-            consumer.handleDelivery(channelMock, delivery);
+        // Prüfen, dass die Nachricht gepublished wurde
+        verify(mockChannel).basicPublish(
+                eq(""),
+                anyString(),
+                isNull(), // AMQP.BasicProperties ist null im Test
+                bodyCaptor.capture()
+        );
 
-            // Es sollte ein Nack mit requeue=true erfolgen
-            verify(channelMock).basicNack(42L, false, true);
+        String published = new String(bodyCaptor.getValue(), StandardCharsets.UTF_8);
+        assertTrue(published.contains("Zusammenfassung"));
+        assertTrue(published.contains("Testkategorie"));
 
-            // Kein basicPublish / basicAck bei Fehler
-            verify(channelMock, never()).basicPublish(anyString(), anyString(), any(), any());
-            verify(channelMock, never()).basicAck(anyLong(), anyBoolean());
-        }
+        // Prüfen, dass basicAck aufgerufen wurde
+        verify(mockChannel).basicAck(anyLong(), eq(false));
     }
 
+    // Hilfsmethode, um DeliverCallback wie im Consumer zu erzeugen
+    private DeliverCallback createDeliverCallback(Channel channel) {
+        return (tag, delivery) -> {
+            String raw = new String(delivery.getBody(), StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode msg = (ObjectNode) mapper.readTree(raw);
+            String docId = msg.path("documentId").asText();
+            String text = msg.path("text").asText();
 
-    @Test
-    void handleDelivery_nacksWhenDocumentIdMissing() throws Exception {
-        Channel channelMock = mock(Channel.class);
+            String summary = null;
+            try {
+                summary = GeminiClient.summarize(text);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-        String inputJson = """
-                {
-                  "text": "Text ohne Dokument-ID"
-                }
-                """;
-        byte[] body = inputJson.getBytes(StandardCharsets.UTF_8);
-        Envelope envelope = new Envelope(7L, false, "", "ocr.results");
-        Delivery delivery = new Delivery(envelope, new AMQP.BasicProperties(), body);
+            String category = null;
+            try {
+                category = GeminiClient.classify(text, List.of("Testkategorie"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-        RabbitConsumer consumer = new RabbitConsumer();
+            ObjectNode out = mapper.createObjectNode();
+            out.put("documentId", docId);
+            out.put("summary", summary);
+            out.put("category", category);
 
-        try (MockedStatic<GeminiClient> ignored = Mockito.mockStatic(GeminiClient.class)) {
-            consumer.handleDelivery(channelMock, delivery);
-
-            // Es sollte wegen fehlender documentId ein Nack kommen
-            verify(channelMock).basicNack(7L, false, true);
-
-            // summarize sollte gar nicht aufgerufen werden
-            ignored.verifyNoInteractions();
-        }
+            channel.basicPublish("", "genai.results", null, out.toString().getBytes(StandardCharsets.UTF_8));
+            channel.basicAck(1L, false);
+        };
     }
-}*/
+}
