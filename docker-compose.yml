@@ -169,7 +169,7 @@ services:
       ACCESSLOG_ARCHIVE_DIR: /opt/batch/archive
       ACCESSLOG_ERROR_DIR: /opt/batch/error
       ACCESSLOG_FILE_PATTERN: "access-*.xml"
-      ACCESSLOG_CRON: "0/30 * * * * *"   # alle 30 Sekunden für Debug
+      ACCESSLOG_CRON: "0/30 * * * * *"   # alle 30 Sekunden für Debug -> "0 0 1 * * *" wäre täglich um 1 Uhr
     depends_on:
       postgres:
         condition: service_healthy

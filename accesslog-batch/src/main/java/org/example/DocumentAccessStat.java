@@ -7,10 +7,11 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+//Entity Klasse: wird über Hibernate in DB Objekte umgewandelt
 @Entity
 @Table(
         name = "document_access_stats",
-        uniqueConstraints = @UniqueConstraint(
+        uniqueConstraints = @UniqueConstraint( //unique -> es darf keine Einträge mit selber ID + Date + Source geben
                 name = "uq_doc_date_source",
                 columnNames = {"document_id", "access_date", "source_system"}
         )
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Setter
 public class DocumentAccessStat {
 
-    @Id
+    @Id //Primärschlüssel, wird automatisch erzeugt
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

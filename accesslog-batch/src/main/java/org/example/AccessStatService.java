@@ -15,18 +15,20 @@ public class AccessStatService {
     private final DocumentAccessStatRepository repo;
     private static final Logger log = LoggerFactory.getLogger(AccessStatService.class);
 
-    @Transactional
+    @Transactional //DB Opterationen innerhalb eine Transaktion, bei Fehler -> Rollback
     public void applyAccessLog(AccessLogFile logFile) {
+        //date + source für xml:
         LocalDate date = LocalDate.parse(logFile.getDate());
         String source = logFile.getSourceSystem();
 
+        //ID + count für jeden Eintrag:
         for (AccessEntry e : logFile.getEntries()) {
             UUID docId = e.getDocumentId();
             int count = e.getCount();
 
             DocumentAccessStat stat = repo
-                    .findByDocumentIdAndAccessDateAndSourceSystem(docId, date, source)
-                    .orElseGet(() -> {
+                    .findByDocumentIdAndAccessDateAndSourceSystem(docId, date, source) //zuerst nach existierenden Datensatz sucehn
+                    .orElseGet(() -> { //neu erstellen, wenn noch nicht existiert
                         DocumentAccessStat s = new DocumentAccessStat();
                         s.setDocumentId(docId);
                         s.setAccessDate(date);
@@ -35,11 +37,8 @@ public class AccessStatService {
                         return s;
                     });
 
-            // Wenn du die Zahl aus dem XML als "Tagesgesamt" speichern willst:
+            // Zahl aus dem XML als "Tagesgesamt" speichern:
             stat.setAccessCount(count);
-
-            // Wenn du stattdessen addieren möchtest:
-            // stat.setAccessCount(stat.getAccessCount() + count);
 
             repo.save(stat);
         }
