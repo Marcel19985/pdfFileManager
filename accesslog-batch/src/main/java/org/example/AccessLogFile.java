@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
-
+//AccessLogFile (bestehend aus mehreren Access Entries)
 @JacksonXmlRootElement(localName = "access-log")
 @Getter
 @Setter
